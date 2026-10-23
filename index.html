@@ -725,6 +725,7 @@ function tripSheet(){
   <p class="note">${dbRef?'Deník se ukládá k vašemu účtu a je dostupný na všech vašich zařízeních.':STORE?'Deník se ukládá jen v tomto prohlížeči. Záloha se hodí při výměně telefonu nebo pro přenos jinam.':'V tomto prostředí se deník neukládá. Před zavřením si stáhněte zálohu.'}${state.lastBackupAt?` Poslední záloha: ${esc(dayLabel(state.lastBackupAt))}.`:''}</p>
   ${window.VD_HOSTED&&!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)&&!navigator.standalone?'<p class="note">Tip: přidejte si aplikaci na plochu telefonu (v prohlížeči Sdílet, pak Přidat na plochu). Pak se otevře i bez signálu ve sklepě a data se v telefonu drží spolehlivěji.</p>':''}
   <div class="row-actions"><button class="btn" data-act="backupDownload">Stáhnout zálohu</button><button class="btn" data-act="backupCopy">Zkopírovat jako text</button><button class="btn" data-act="importFile">Obnovit ze souboru</button><button class="btn" data-act="importPaste">Vložit text zálohy</button></div>
+  ${srvSection()}
   <div class="row-actions"><button class="btn danger" data-act="newTrip">Začít nový víkend</button></div>
   <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="saveTrip">Uložit</button></div>`);
 }
@@ -832,6 +833,70 @@ async function saveFile(name,data,mime){
   try{const b=new Blob([data],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return 'ok';}
   catch(e){return 'fail';}
 }
+/* ---------- záloha na server (Vercel) ---------- */
+const SRV_KEY='vinny-denik-server-v1';
+let srv=(()=>{if(!STORE)return null;try{const v=JSON.parse(STORE.getItem(SRV_KEY)||'null');return v&&v.name&&v.code?v:null;}catch(e){return null;}})();
+function srvStore(){if(!STORE)return;try{if(srv)STORE.setItem(SRV_KEY,JSON.stringify(srv));else STORE.removeItem(SRV_KEY);}catch(_){}}
+async function srvCall(body,cred){
+  cred=cred||srv;let r;
+  try{r=await fetch('/api/backup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.assign({name:cred.name,code:cred.code},body))});}
+  catch(_){throw gmErr('network');}
+  if(r.status===413)throw gmErr('too_big');
+  if(body.action==='get'&&r.ok)return r.text();
+  let j=null;try{j=await r.json();}catch(_){}
+  if(!r.ok)throw gmErr((j&&j.error)||(r.status===404?'not_deployed':'server'));
+  return j;
+}
+function srvErr(e){
+  return ({auth:'Jméno nebo kód nesedí.',not_configured:'Záloha na server zatím není na Vercelu nastavená.',not_deployed:'Server pro zálohy tu není dostupný.',
+    too_big:'Záloha je na server moc velká, nejspíš kvůli fotkám.',network:'Bez připojení k internetu to nepůjde, zkuste to se signálem.'})[e&&e.code]||'Na serveru se něco pokazilo, zkuste to znovu.';
+}
+function srvInfo(){return srv?`Ukládá se jako <b>${esc(srv.name)}</b>. ${srv.lastAt?`Naposledy uloženo na server: ${esc(dayLabel(srv.lastAt))}.`:'Na server zatím nic uloženo.'}`:'';}
+function srvSection(){
+  if(!window.VD_HOSTED)return '';
+  return `<hr><h3 style="font-size:19px">Záloha na server</h3>`+(srv
+    ?`<p class="note" id="srvInfo">${srvInfo()}</p><div class="row-actions"><button class="btn primary" data-act="srvSave">Uložit na server</button><button class="btn" data-act="srvList">Obnovit ze serveru</button><button class="btn" data-act="srvLogout">Odhlásit</button></div>`
+    :`<p class="note">Každý má na serveru vlastní složku, kam se ukládá každá verze deníku zvlášť. Přihlaste se jménem a osobním kódem pro zálohy.</p><div class="row-actions"><button class="btn" data-act="srvLogin">Přihlásit se</button></div>`);
+}
+function srvLoginSheet(){
+  openSheet(`<h2 id="sheetTitle">Přihlášení k záloze</h2>
+  <label class="f">Jméno<input id="srvName" autocomplete="username" autocapitalize="words"></label>
+  <label class="f">Kód<input id="srvCode" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false"></label>
+  <div class="ai-status" id="srvStatus" aria-live="polite"></div>
+  <p class="note">Jméno a kód se zapamatují v tomto zařízení. Do zálohy deníku se neukládají.</p>
+  <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="trip">Zpět</button><button class="btn primary" data-act="srvLoginGo">Přihlásit</button></div>`);
+}
+async function srvLogin(btn){
+  const cred={name:$('srvName').value.trim(),code:$('srvCode').value.trim()},st=$('srvStatus');
+  if(!cred.name||!cred.code){st.style.color='var(--red)';st.textContent='Vyplňte jméno i kód.';return;}
+  btn.disabled=true;st.style.color='';st.textContent='Ověřuji…';
+  try{const j=await srvCall({action:'check'},cred);srv={name:j.name||cred.name,code:cred.code};srvStore();tripSheet();toast('Přihlášeno');}
+  catch(e){st.style.color='var(--red)';st.textContent=srvErr(e);btn.disabled=false;}
+}
+async function srvSave(btn){
+  btn.disabled=true;const old=btn.textContent;btn.textContent='Ukládám…';
+  try{await srvCall({action:'save',backup:backupJson()});srv.lastAt=Date.now();srvStore();const i=$('srvInfo');if(i)i.innerHTML=srvInfo();toast('Uloženo na server');}
+  catch(e){if(e.code==='auth'){srv=null;srvStore();tripSheet();}toast(srvErr(e));}
+  btn.disabled=false;btn.textContent=old;
+}
+async function srvList(btn){
+  btn.disabled=true;
+  try{
+    const {items}=await srvCall({action:'list'});
+    const kb=n=>Math.max(1,Math.round(n/1024)).toLocaleString('cs-CZ')+' kB';
+    const label=it=>{const d=new Date(it.at);return d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});};
+    const trip=it=>(it.path.split('/').pop().replace(/\.json$/,'').split('_').slice(2).join(' ')||'').replace(/-/g,' ');
+    openSheet(`<h2 id="sheetTitle">Obnovit ze serveru</h2>${items.length
+      ?`<p class="note">Vyberte verzi. Před obnovením se ještě zeptám.</p><div class="row-actions" style="flex-direction:column;align-items:stretch">${items.map(it=>`<button class="btn" data-act="srvGet" data-path="${esc(it.path)}" style="text-align:left">${esc(label(it))}<span class="meta" style="display:block;font-size:13px">${esc(trip(it))}, ${kb(it.size)}</span></button>`).join('')}</div>`
+      :'<p class="note">Na serveru zatím nemáte žádnou zálohu.</p>'}
+      <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="trip">Zpět</button></div>`);
+  }catch(e){toast(srvErr(e));btn.disabled=false;}
+}
+async function srvGet(btn){
+  btn.disabled=true;
+  try{importBackup(await srvCall({action:'get',path:btn.dataset.path}));}
+  catch(e){toast(srvErr(e));btn.disabled=false;}
+}
 function markBackup(){state.lastBackupAt=Date.now();commit({silent:true});}
 function textSheet(title,text,hint){
   openSheet(`<h2 id="sheetTitle">${esc(title)}</h2>${hint?`<p class="note">${esc(hint)}</p>`:''}<textarea class="copybox" id="copybox" readonly>${esc(text)}</textarea>
@@ -873,6 +938,12 @@ document.addEventListener('click',async e=>{
   switch(act){
     case 'trip':return tripSheet();
     case 'theme':return toggleTheme();
+    case 'srvLogin':return srvLoginSheet();
+    case 'srvLoginGo':return srvLogin(t);
+    case 'srvSave':return srvSave(t);
+    case 'srvList':return srvList(t);
+    case 'srvGet':return srvGet(t);
+    case 'srvLogout':srv=null;srvStore();tripSheet();return toast('Odhlášeno ze zálohy');
     case 'backupDownload':{const r=await saveFile(`vinny-denik-zaloha-${stamp()}.json`,backupJson(),'application/json');if(r==='ok'){markBackup();toast('Záloha připravena ke stažení');}else if(r==='fail'){textSheet('Záloha jako text',backupJson(),'Stažení tu není povolené. Zkopírujte text a uložte si ho třeba do poznámek.');}return;}
     case 'backupCopy':markBackup();return textSheet('Záloha jako text',backupJson(),'Zkopírujte celý text a uložte si ho. Obnovíte ho tlačítkem Vložit text zálohy.');
     case 'importFile':return $('backupInput').click();
