@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vinný deník – sklípky</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vinný deník">
+<meta name="theme-color" content="#C93A63">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF2EF; --bg2:#FDE6E4; --surface:#FFFFFF; --ink:#3A2230; --muted:#7A5B67; --line:#F0D2D6;
+  --ruby:#C93A63; --ruby-ink:#FFFFFF; --straw:#EDB93A; --rose:#F29AAE; --red:#9E2A4B; --orange:#EE8B4A; --vine:#4E8F2E;
+  --chip:#FCE4E8; --chip2:#E6F3D6; --scrim:rgba(58,34,48,.42); --shadow:rgba(201,58,99,.28);
+  --sun:#FFC9B5; --sun2:#FFE3D6; --hill1:#D7EBBF; --hill2:#B4DC86; --row2:#8CC35E; --hill3:#86C35F; --row3:#5E9E3B; --hill4:#6AAE48;
+  --wall:#FFFFFF; --roof:#E98A8A; --door:#C93A63; --orn:#F29AAE; --orn2:#7DB0D8; --grape:#A23A72; --grape2:#D2639A; --leaf:#5E9E3B; --star:transparent;
+  color-scheme: light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#22182A; --bg2:#2A1D31; --surface:#33253A; --ink:#FBEFF3; --muted:#C9AFBC; --line:#4A3750;
+    --ruby:#FF7AA2; --ruby-ink:#22182A; --straw:#F5CB5C; --rose:#F7A8BA; --red:#D9547A; --orange:#F4A06A; --vine:#A6D877;
+    --chip:#45304B; --chip2:#2F3B2C; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.4);
+    --sun:#F6E7C8; --sun2:#4A3557; --hill1:#3C3150; --hill2:#2F4A33; --row2:#3F6640; --hill3:#294230; --row3:#365C39; --hill4:#1F3426;
+    --wall:#CFC3D6; --roof:#8C5A6E; --door:#FF7AA2; --orn:#E58FAA; --orn2:#7C9EC2; --grape:#C4669A; --grape2:#E58FB8; --leaf:#4C7D44; --star:#F6E7C8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#22182A; --bg2:#2A1D31; --surface:#33253A; --ink:#FBEFF3; --muted:#C9AFBC; --line:#4A3750;
+    --ruby:#FF7AA2; --ruby-ink:#22182A; --straw:#F5CB5C; --rose:#F7A8BA; --red:#D9547A; --orange:#F4A06A; --vine:#A6D877;
+    --chip:#45304B; --chip2:#2F3B2C; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.4);
+    --sun:#F6E7C8; --sun2:#4A3557; --hill1:#3C3150; --hill2:#2F4A33; --row2:#3F6640; --hill3:#294230; --row3:#365C39; --hill4:#1F3426;
+    --wall:#CFC3D6; --roof:#8C5A6E; --door:#FF7AA2; --orn:#E58FAA; --orn2:#7C9EC2; --grape:#C4669A; --grape2:#E58FB8; --leaf:#4C7D44; --star:#F6E7C8;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:linear-gradient(180deg,var(--bg) 0,var(--bg) 120px,var(--bg2) 60vh) fixed;min-height:100vh;color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{font-family:"Young Serif",Georgia,"Times New Roman",serif;font-weight:400;margin:0;line-height:1.2}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+a{color:var(--ruby)}
+:focus-visible{outline:3px solid var(--ruby);outline-offset:2px;border-radius:6px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 160px;position:relative;z-index:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:linear-gradient(180deg,var(--bg) 82%,rgba(0,0,0,0));padding:14px 0 14px}
+.trip{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.trip-btn{background:none;border:0;padding:0;text-align:left}
+.trip h1{font-size:31px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.trip h1 svg{flex:none;width:30px;height:34px}
+.trip .dates{color:var(--muted);font-size:15px}
+.status{font-size:13px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--vine);display:inline-block}
+.status.local i{background:var(--straw)}
+.strip{display:flex;gap:3px;height:8px;margin-top:10px;border-radius:4px;overflow:hidden;background:var(--line)}
+.strip span{flex:1;border-radius:4px}
+nav.tabs{display:flex;gap:5px;margin-top:10px}
+nav.tabs button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 2px;font-size:14.5px;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--ruby);color:var(--ruby-ink);border-color:var(--ruby);box-shadow:0 4px 12px var(--shadow)}
+
+.tally{display:flex;gap:18px;margin:16px 2px 4px;color:var(--muted);font-size:15px;flex-wrap:wrap}
+.tally b{color:var(--ink);font-family:"Young Serif",Georgia,serif;font-weight:400;font-size:22px;margin-right:4px}
+
+.cellar{background:var(--surface);border-radius:20px;margin:14px 0;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 18px rgba(58,34,48,.07)}
+.cellar-head{display:flex;gap:12px;align-items:flex-start;padding:16px 16px 12px;width:100%;text-align:left;background:none;border:0}
+.door{flex:none;width:40px;height:48px;border-radius:20px 20px 5px 5px;background:var(--ruby);display:grid;place-items:center;color:#fff;font-family:"Young Serif",Georgia,serif;font-size:17px;padding-top:5px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12)}
+.door.d1{background:var(--vine)} .door.d2{background:var(--straw);color:#3A2230} .door.d3{background:var(--rose);color:#3A2230}
+.cellar-head h2{font-size:21px}
+.meta{color:var(--muted);font-size:15px}
+.cellar-body{padding:0 16px 16px}
+.cellar-note{font-style:italic;color:var(--muted);margin:0 0 10px}
+.wine{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:flex-start;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0}
+.dot{flex:none;width:14px;height:14px;border-radius:50%;margin-top:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.c-bile{background:var(--straw)} .c-ruzove{background:var(--rose)} .c-cervene{background:var(--red)} .c-oranzove{background:var(--orange)}
+.thumb{flex:none;width:46px;height:46px;border-radius:10px;object-fit:cover;background:var(--chip)}
+.wine-main{flex:1;min-width:0}
+.wine-name{font-weight:700}
+.wine-sub{color:var(--muted);font-size:15px}
+.wine-notes{font-size:15px;margin-top:2px;overflow-wrap:anywhere;white-space:pre-line}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tag{font-size:12.5px;background:var(--chip2);border-radius:999px;padding:1px 8px}
+.wine-side{text-align:right;flex:none}
+.glasses{display:inline-flex;gap:1px;vertical-align:middle}
+.glasses svg{width:15px;height:17px}
+.buy{display:inline-block;margin-top:4px;font-size:13px;background:var(--ruby);color:var(--ruby-ink);border-radius:999px;padding:1px 8px}
+.rank{flex:none;width:24px;font-family:"Young Serif",Georgia,serif;color:var(--muted);font-size:18px;padding-top:1px}
+.row-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;font-size:15px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--ruby);color:var(--ruby-ink);border-color:var(--ruby)}
+.btn.ai{border-color:var(--vine);color:var(--vine);background:var(--chip2)}
+.btn.danger{color:var(--ruby);border-color:transparent;padding-left:4px;padding-right:4px}
+
+.scenery{position:fixed;left:0;right:0;bottom:0;height:min(44vh,420px);z-index:0;pointer-events:none}
+.scenery svg{width:100%;height:100%;display:block}
+.cheers{width:150px;height:120px;margin:0 auto 6px;display:block}
+.lead{background:var(--surface);border-radius:20px;padding:14px 16px;border:1px solid var(--line)}
+.tally{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 16px;display:inline-flex}
+.empty{padding-top:28px}
+.banner{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--straw);color:#2A2620;font-size:15px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.banner .btn{border-color:#2A2620;color:#2A2620;padding:6px 12px;flex:none}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:20px 0 6px}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty h2{color:var(--ink);font-size:24px;margin-bottom:8px}
+.fab{position:fixed;box-shadow:0 8px 22px var(--shadow) !important;right:max(16px,calc(50% - 304px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--ruby);color:var(--ruby-ink);border:0;border-radius:999px;padding:14px 22px;font-size:17px;font-weight:700;box-shadow:0 6px 20px rgba(80,10,30,.28)}
+
+.list-section h3{font-size:19px;margin:22px 2px 8px;display:inline-block;background:var(--bg);border-radius:10px;padding:2px 8px 2px 2px}
+.plain{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:4px 16px;box-shadow:0 6px 18px rgba(58,34,48,.06)}
+.plain .wine:first-child{border-top:0}
+.sum{display:flex;justify-content:space-between;padding:12px 2px;font-weight:700}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 0}
+.search{width:100%;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.seg button,.filters button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.seg button[aria-pressed="true"],.filters button[aria-pressed="true"]{background:var(--ruby);color:var(--ruby-ink);border-color:var(--ruby)}
+.aroma-group{margin-top:8px}
+.aroma-group .meta{font-size:13px}
+.seg.small button{padding:5px 10px;font-size:14px}
+
+/* sommelier */
+.prose{box-shadow:0 6px 18px rgba(58,34,48,.06);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.prose p{margin:0 0 10px} .prose p:last-child{margin-bottom:0}
+.prose ul{margin:0 0 10px;padding-left:20px}
+.lead{font-size:18px;line-height:1.55;margin:18px 2px 6px}
+.bars{display:flex;justify-content:center;align-items:flex-end;gap:3px;height:90px;margin:14px 0 4px;padding:0 2px}
+.bars span{flex:1;max-width:28px;border-radius:4px 4px 0 0;min-height:6px}
+.colorbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:10px 0 6px}
+.legend{background:var(--surface);border-radius:12px;padding:6px 10px;display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .dot{margin:0;width:10px;height:10px}
+.chat{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bubble{max-width:88%;padding:10px 14px;border-radius:16px;font-size:16px}
+.bubble.u{align-self:flex-end;background:var(--ruby);color:var(--ruby-ink);border-bottom-right-radius:4px}
+.bubble.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bubble.a p{margin:0 0 8px} .bubble.a p:last-child{margin:0}
+.bubble.a ul{margin:0 0 8px;padding-left:18px}
+.ask{display:flex;gap:8px;margin-top:10px}
+.ask input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;min-width:0}
+.suggest{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.suggest button{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:14px;color:var(--muted)}
+.thinking{color:var(--muted);font-style:italic}
+.note{font-size:14px;color:var(--muted);margin-top:8px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20;display:none}
+.scrim.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:22px 22px 0 0;max-height:92dvh;max-height:92vh;overflow:auto;overscroll-behavior:contain;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease;max-width:640px;margin:0 auto}
+@supports (height:1dvh){.sheet{max-height:92dvh}}
+.sheet.open{transform:none}
+@media (prefers-reduced-motion: reduce){.sheet,.toast{transition:none}}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 12px}
+.sheet h2{font-size:23px;margin-bottom:6px}
+label.f{display:block;margin:14px 0 0;font-size:15px;color:var(--muted)}
+.f input,.f select,.f textarea{display:block;width:100%;margin-top:4px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:17px}
+.f textarea{min-height:84px;resize:vertical}
+.flabel{display:block;margin:14px 0 0;font-size:15px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rate{display:flex;gap:6px;margin-top:4px}
+.rate button{background:none;border:0;padding:4px}
+.rate svg{width:30px;height:34px}
+.sheet-actions{display:flex;gap:10px;margin-top:22px;align-items:center;position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom,0px));background:var(--surface);padding:10px 0 4px}
+.sheet-actions .spacer{flex:1}
+.photo-row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.photo-prev{width:100%;max-height:220px;object-fit:contain;border-radius:14px;background:var(--bg);margin-top:8px}
+.ai-status{font-size:14px;color:var(--vine);margin-top:6px;min-height:1em}
+.copybox{width:100%;min-height:200px;margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 8px 8px 16px;border-radius:999px;font-size:15px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none;display:flex;gap:10px;align-items:center;white-space:nowrap}
+.toast.show{opacity:1;pointer-events:auto}
+.toast:not(.has-act){padding-right:16px}
+.toast button{background:var(--bg);color:var(--ink);border:0;border-radius:999px;padding:4px 12px;font-size:14px;font-weight:700}
+</style>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script>window.VD_HOSTED=true;</script>
+</head>
+<body>
+<div class="scenery" aria-hidden="true"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice">
+<defs><radialGradient id="sunG"><stop offset="0" stop-color="var(--sun)"/><stop offset="1" stop-color="var(--sun2)" stop-opacity="0"/></radialGradient></defs>
+<g fill="var(--star)"><circle cx="40" cy="40" r="1.2"/><circle cx="120" cy="22" r="1"/><circle cx="190" cy="54" r="1.3"/><circle cx="250" cy="18" r="1"/><circle cx="370" cy="44" r="1.2"/><circle cx="80" cy="80" r=".9"/></g>
+<circle cx="300" cy="104" r="64" fill="url(#sunG)"/><circle cx="300" cy="104" r="24" fill="var(--sun)"/>
+<path d="M0 170 C40 150 70 120 105 112 C120 108 128 96 140 92 C152 88 160 104 172 110 C210 128 250 150 290 146 C330 142 365 128 400 132 L400 300 L0 300Z" fill="var(--hill1)"/>
+<g transform="translate(132 72)"><rect x="0" y="8" width="16" height="13" fill="var(--wall)"/><path d="M-2 9 L8 1 L18 9Z" fill="var(--roof)"/><rect x="5" y="-6" width="6" height="10" fill="var(--wall)"/><path d="M4 -5 L8 -11 L12 -5Z" fill="var(--roof)"/><path d="M8 -15 v4" stroke="var(--roof)" stroke-width="1.2"/><rect x="6.2" y="13" width="3.6" height="8" rx="1.8" fill="var(--door)"/></g>
+<path d="M0 210 C60 176 120 170 180 182 C240 194 300 168 400 176 L400 300 L0 300Z" fill="var(--hill2)"/>
+<g fill="none" stroke="var(--row2)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="1 5">
+<path d="M0 220 C60 188 120 182 180 194 C240 206 300 182 400 190"/><path d="M0 232 C60 202 120 196 180 207 C240 218 300 196 400 204"/><path d="M0 244 C60 216 120 210 180 220 C240 230 300 210 400 218"/></g>
+<g transform="translate(250 166)">
+<path d="M-4 30 C-4 14 6 4 22 4 C38 4 48 14 48 30Z" fill="var(--hill2)"/>
+<rect x="2" y="10" width="40" height="22" fill="var(--wall)"/><path d="M-1 11 L22 -1 L45 11Z" fill="var(--roof)"/>
+<path d="M15 32 V22 a7 7 0 0 1 14 0 V32Z" fill="var(--door)"/>
+<g fill="var(--orn)"><circle cx="8" cy="17" r="2"/><circle cx="36" cy="17" r="2"/><circle cx="22" cy="12.5" r="1.6"/></g>
+<g fill="var(--orn2)"><circle cx="5" cy="21" r="1.2"/><circle cx="11" cy="21" r="1.2"/><circle cx="33" cy="21" r="1.2"/><circle cx="39" cy="21" r="1.2"/></g>
+<path d="M8 17 v9 M36 17 v9" stroke="var(--leaf)" stroke-width="1"/></g>
+<path d="M0 252 C70 226 140 230 210 242 C280 254 340 236 400 240 L400 300 L0 300Z" fill="var(--hill3)"/>
+<g fill="none" stroke="var(--row3)" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="1.5 6">
+<path d="M0 262 C70 238 140 242 210 254 C280 266 340 248 400 252"/><path d="M0 276 C70 254 140 258 210 268 C280 278 340 262 400 266"/><path d="M0 290 C70 270 140 274 210 282 C280 290 340 278 400 280"/></g>
+<path d="M0 286 C80 272 160 276 240 284 C310 290 360 282 400 284 L400 300 L0 300Z" fill="var(--hill4)"/>
+<g transform="translate(54 240) scale(.9)"><path d="M14 4 C22 -2 32 0 36 6 C28 8 20 8 14 4Z" fill="var(--leaf)"/><path d="M14 4 v6" stroke="var(--leaf)" stroke-width="1.6"/>
+<g fill="var(--grape2)"><circle cx="8" cy="13" r="4.2"/><circle cx="16" cy="12" r="4.2"/><circle cx="24" cy="13" r="4"/></g><g fill="var(--grape)"><circle cx="11" cy="20" r="4.2"/><circle cx="19.5" cy="20" r="4.2"/><circle cx="15" cy="27" r="4"/><circle cx="15" cy="34" r="3.2"/></g></g>
+<g transform="translate(316 254) scale(.75)"><path d="M14 4 C22 -2 32 0 36 6 C28 8 20 8 14 4Z" fill="var(--leaf)"/><path d="M14 4 v6" stroke="var(--leaf)" stroke-width="1.6"/>
+<g fill="var(--rose)"><circle cx="8" cy="13" r="4.2"/><circle cx="16" cy="12" r="4.2"/><circle cx="24" cy="13" r="4"/></g><g fill="var(--ruby)"><circle cx="11" cy="20" r="4.2"/><circle cx="19.5" cy="20" r="4.2"/><circle cx="15" cy="27" r="4"/></g></g>
+</svg></div>
+<div class="wrap">
+  <header class="top">
+    <div class="trip">
+      <button class="trip-btn" data-act="trip" aria-label="Upravit název a termín víkendu">
+        <h1><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M15 6c1-3 4-5 8-5-1 3-4 5-8 5z" fill="var(--leaf)"/><path d="M15 6v4" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round"/><g fill="var(--grape2)"><circle cx="9" cy="13" r="4"/><circle cx="17" cy="12" r="4"/><circle cx="24" cy="14" r="3.6"/></g><g fill="var(--ruby)"><circle cx="12" cy="20" r="4"/><circle cx="20" cy="19.5" r="4"/></g><g fill="var(--grape)"><circle cx="16" cy="27" r="4"/><circle cx="9" cy="25" r="3"/><circle cx="23" cy="25" r="3"/></g></svg><span id="tripName">Víkend na Moravě</span></h1>
+        <div class="dates" id="tripDates"></div>
+      </button>
+      <div class="status" id="status"><i></i><span>Načítám…</span></div>
+    </div>
+    <div class="strip" id="strip" aria-hidden="true"></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="sklipky" aria-selected="true">Sklípky</button>
+      <button role="tab" data-tab="zebricek" aria-selected="false">Žebříček</button>
+      <button role="tab" data-tab="nakup" aria-selected="false">Nákup</button>
+      <button role="tab" data-tab="sommelier" aria-selected="false">Sommeliér</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+</div>
+
+<button class="fab" id="fab" data-act="addCellar">+ Sklípek</button>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="toast" id="toast" role="status"><span id="toastText"></span><button id="toastBtn" hidden></button></div>
+<input type="file" id="backupInput" accept=".json,application/json,text/plain" class="sr" tabindex="-1">
+<input type="file" id="photoInput" accept="image/*" capture="environment" class="sr" tabindex="-1">
+
+<script>
+(function(){
+const LS_KEY='vinny-denik-v1';
+const STORE=(()=>{try{const k='__vd_test';window.localStorage.setItem(k,'1');window.localStorage.removeItem(k);return window.localStorage;}catch(e){return null;}})();
+
+const TABS=['sklipky','zebricek','nakup','sommelier'];
+const PRED=['Zemské','Jakostní','Kabinetní','Pozdní sběr','Výběr z hroznů','Výběr z bobulí','Výběr z cibéb','Ledové','Slámové','VOC','Pét-nat / sekt'];
+const COLORS=[['bile','Bílé'],['ruzove','Růžové'],['cervene','Červené'],['oranzove','Oranžové']];
+const COLOR_LABEL=Object.fromEntries(COLORS);
+const SWEET=['Suché','Polosuché','Polosladké','Sladké'];
+const BODY=['Lehké','Střední','Plné'];
+const ACID=['Svěží','Vyvážená','Měkká'];
+const AROMAS={'Ovoce':['citrus','zelené jablko','hruška','broskev','meruňka','angrešt','tropické ovoce','jahoda','višeň','černý rybíz','švestka','ostružina'],
+  'Květy a byliny':['bezový květ','lipový květ','růže','tráva','kopřiva','máta'],
+  'Další':['med','koření','pepř','vanilka','máslo','oříšky','minerální','petrolejový tón','tabák','čokoláda','kouř']};
+const VARIETIES=['Ryzlink vlašský','Ryzlink rýnský','Veltlínské zelené','Müller Thurgau','Pálava','Tramín červený','Sauvignon','Chardonnay','Rulandské šedé','Rulandské bílé','Muškát moravský','Neuburské','Hibernal','Solaris','Frankovka','Svatovavřinecké','Zweigeltrebe','Modrý Portugal','André','Cabernet Moravia','Cabernet Sauvignon','Merlot','Rulandské modré','Cuvée','Rosé','Klaret'];
+
+let state=loadLocal()||{trip:{name:'Víkend na Moravě',dates:''},cellars:[],updatedAt:0};
+let tab=TABS.includes(location.hash.slice(1))?location.hash.slice(1):'sklipky';
+let openCellar=null, filterColor='', query='';
+let dbRef=null, writing=false, pendingWrite=false, saveTimer=null;
+const CAP={sample:null,imgOK:false,assets:null,downloads:null};
+const AI={chat:[],chatBusy:false,chatCtl:null,verdictLive:null,verdictCtl:null};
+
+const PH_KEY='vinny-denik-photos-v1';
+function loadLocal(){if(!STORE)return null;try{const s=STORE.getItem(LS_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+let quotaWarned=false;
+function saveLocal(){if(!STORE)return;try{STORE.setItem(LS_KEY,JSON.stringify(state));}catch(e){if(!quotaWarned){quotaWarned=true;toast('Paměť prohlížeče je plná, stáhněte zálohu');}}}
+let photos=(()=>{if(!STORE)return {};try{return JSON.parse(STORE.getItem(PH_KEY)||'{}')||{};}catch(e){return {};}})();
+function savePhotos(){
+  const ids=new Set();state.cellars.forEach(c=>(c.wines||[]).forEach(w=>ids.add(w.id)));
+  Object.keys(photos).forEach(k=>{if(!ids.has(k))delete photos[k];});
+  if(!STORE)return true;
+  try{STORE.setItem(PH_KEY,JSON.stringify(photos));return true;}catch(e){return false;}
+}
+function localStatus(){if(STORE)setStatus('Uloženo v zařízení',true);else setStatus('Neukládá se',true);}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const kc=n=>(Math.round(n)||0).toLocaleString('cs-CZ')+'\u00a0Kč';
+const clean=t=>String(t||'').replace(/\u2014/g,'\u2013');
+const pl=(n,a,b,c)=>n===1?a:(n>=2&&n<=4?b:c);
+
+function setStatus(t,local){const el=$('status');el.classList.toggle('local',!!local);el.querySelector('span').textContent=t;}
+let toastT;
+function toast(msg,action){
+  const el=$('toast'),b=$('toastBtn');$('toastText').textContent=msg;
+  if(action){b.hidden=false;b.textContent=action.label;b.onclick=()=>{el.classList.remove('show');action.fn();};el.classList.add('has-act');}
+  else{b.hidden=true;b.onclick=null;el.classList.remove('has-act');}
+  el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),action?5000:1800);
+}
+
+/* ---------- persistence ---------- */
+function commit(opts){
+  state.updatedAt=Date.now();saveLocal();
+  if(!(opts&&opts.silent)) render();
+  if(dbRef){setStatus('Ukládám…');clearTimeout(saveTimer);saveTimer=setTimeout(pushRemote,600);}
+}
+async function pushRemote(){
+  if(!dbRef)return;
+  if(writing){pendingWrite=true;return;}
+  writing=true;
+  try{await dbRef.set({state:JSON.parse(JSON.stringify(state))});setStatus('Uloženo');}
+  catch(e){localStatus();if(e&&e.code==='quota_exceeded')toast('Úložiště je plné');}
+  writing=false;
+  if(pendingWrite){pendingWrite=false;pushRemote();}
+}
+async function initDb(){
+  try{
+    const c=window.claude; if(!c||!c.use){localStatus();return;}
+    const [db,user]=await Promise.all([c.use('db'),c.use('user')]);
+    const id=user?await user.id():null;
+    if(!db||!id){localStatus();return;}
+    dbRef=db.collection('data/users/'+id).doc('diary');
+    let first=true;
+    dbRef.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites)return;
+      const remote=snap.exists?snap.data().state:null;
+      if(remote&&(remote.updatedAt||0)>(state.updatedAt||0)){state=JSON.parse(JSON.stringify(remote));saveLocal();render();}
+      else if(first&&(!remote||(remote.updatedAt||0)<(state.updatedAt||0))&&state.cellars.length){pushRemote();}
+      if(first){setStatus('Uloženo');first=false;}
+    },()=>{dbRef=null;localStatus();});
+  }catch(e){localStatus();}
+}
+async function initCaps(){
+  const c=window.claude; if(!c||!c.use)return;
+  c.use('sample').then(async s=>{CAP.sample=s;if(s){try{const l=await s.limits();CAP.imgOK=!!(l&&l.images);}catch(_){}}render();});
+  c.use('assets').then(a=>{CAP.assets=a;});
+  c.use('downloads').then(d=>{CAP.downloads=d;});
+}
+function aiErr(e){
+  const code=e&&e.code;
+  if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){CAP.sample=null;render();return 'Sommeliér není v tomto zobrazení dostupný.';}
+  if(code==='rate_limited')return 'Sommeliér má teď moc práce, zkuste to za chvíli.';
+  if(code==='image_rejected')return 'Fotku se nepodařilo přečíst, zkuste jinou.';
+  if(code==='images_unavailable'){CAP.imgOK=false;return 'Čtení fotek tu není dostupné.';}
+  if(code==='invalid_json')return 'Etiketu se nepodařilo spolehlivě přečíst.';
+  if(code==='cancelled')return '';
+  return 'Spojení se sommeliérem vypadlo, zkuste to znovu.';
+}
+
+/* ---------- helpers ---------- */
+function glassSvg(f){const c=f?'var(--ruby)':'var(--muted)';return `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M4 2h12l-1 7a5 5 0 0 1-10 0z" fill="${f?'var(--ruby)':'none'}" stroke="${c}" stroke-width="1.6"/><path d="M10 14v6M6 21h8" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/></svg>`;}
+function glasses(n){if(!n)return '';let s=`<span class="glasses" role="img" aria-label="Hodnocení ${n} z 5">`;for(let i=1;i<=5;i++)s+=glassSvg(i<=n);return s+'</span>';}
+function wineSub(w){return [w.winery,w.vintage,w.predikat,w.sweetness].filter(Boolean).map(esc).join(', ');}
+function findCellar(id){return state.cellars.find(c=>c.id===id);}
+function allWines(){const out=[];state.cellars.forEach(c=>(c.wines||[]).forEach(w=>out.push({c,w})));return out.sort((a,b)=>(a.w.ts||0)-(b.w.ts||0));}
+function colorVar(k){return `var(--${{bile:'straw',ruzove:'rose',cervene:'red',oranzove:'orange'}[k]||'straw'})`;}
+function photoUrl(w){return w._photo||(w.photoId?'/_blob/'+w.photoId:(w.id&&photos[w.id])||'');}
+function dayLabel(ts){if(!ts)return '';const d=new Date(ts);return d.toLocaleDateString('cs-CZ',{weekday:'short'})+' '+d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});}
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+
+function md(t){
+  const lines=esc(clean(t)).split('\n');let h='',inList=false;
+  const inline=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<i>$2</i>');
+  for(const raw of lines){const l=raw.trim();
+    if(/^[-•*]\s+/.test(l)){if(!inList){h+='<ul>';inList=true;}h+='<li>'+inline(l.replace(/^[-•*]\s+/,''))+'</li>';continue;}
+    if(inList){h+='</ul>';inList=false;}
+    if(!l)continue;
+    if(/^#{1,4}\s/.test(l)){h+='<p><b>'+inline(l.replace(/^#+\s*/,''))+'</b></p>';continue;}
+    h+='<p>'+inline(l)+'</p>';}
+  if(inList)h+='</ul>';return h;
+}
+
+function wineRow(c,w,opts){
+  opts=opts||{};
+  const pu=photoUrl(w);
+  const tags=[w.body,w.acid,...(w.aromas||[])].filter(Boolean).slice(0,5);
+  return `<button class="wine" data-wine="${w.id}" data-cellar="${c.id}">
+    ${opts.rank?`<span class="rank">${opts.rank}</span>`:''}
+    ${pu?`<img class="thumb" src="${pu}" alt="" loading="lazy">`:`<span class="dot c-${esc(w.color||'bile')}"></span>`}
+    <span class="wine-main">
+      <span class="wine-name">${esc(w.name||'Bez názvu')}</span>
+      <div class="wine-sub">${opts.showCellar?esc(c.name)+(wineSub(w)?', ':''):''}${wineSub(w)}</div>
+      ${w.notes&&!opts.compact?`<div class="wine-notes">${esc(w.notes)}</div>`:''}
+      ${tags.length&&!opts.compact?`<span class="tags">${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</span>`:''}
+    </span>
+    <span class="wine-side">${glasses(w.rating)}${w.price?`<div class="wine-sub">${kc(w.price)}</div>`:''}${+w.buy?`<span class="buy">${esc(w.buy)}× koupit</span>`:''}</span>
+  </button>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  $('tripName').textContent=state.trip.name||'Víkend na Moravě';
+  $('tripDates').textContent=state.trip.dates||'Klepněte a doplňte termín a místo';
+  const ws=allWines();
+  $('strip').innerHTML=ws.map(x=>`<span style="background:${colorVar(x.w.color)};opacity:${x.w.rating?.45+x.w.rating*.11:.55}"></span>`).join('');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+  $('fab').style.display=tab==='sklipky'?'':'none';
+  const v=$('view');
+  if(tab==='sklipky')v.innerHTML=renderCellars();
+  else if(tab==='zebricek')v.innerHTML=renderRank();
+  else if(tab==='nakup')v.innerHTML=renderShop();
+  else v.innerHTML=renderSommelier();
+  if(tab==='sommelier'){const log=$('chatLog');if(log)log.scrollIntoView({block:'nearest'});}
+}
+function renderCellars(){
+  if(!state.cellars.length)return `<div class="empty"><svg class="cheers" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-14 52 70)"><path d="M34 18h36l-3 26a15 15 0 0 1-30 0z" fill="none" stroke="var(--ink)" stroke-width="2.5"/><path d="M36.5 32h31l-1.5 12a14 14 0 0 1-28 0z" fill="var(--rose)"/><path d="M52 60v30M40 92h24" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></g><g transform="rotate(14 98 70)"><path d="M80 18h36l-3 26a15 15 0 0 1-30 0z" fill="none" stroke="var(--ink)" stroke-width="2.5"/><path d="M82.5 32h31l-1.5 12a14 14 0 0 1-28 0z" fill="var(--ruby)"/><path d="M98 60v30M86 92h24" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></g><g stroke="var(--straw)" stroke-width="2.5" stroke-linecap="round"><path d="M75 6v8M62 10l4 6M88 10l-4 6"/></g><g fill="var(--vine)"><circle cx="20" cy="104" r="3"/><circle cx="130" cy="100" r="2.5"/></g><g fill="var(--straw)"><circle cx="128" cy="30" r="2.5"/><circle cx="18" cy="36" r="2"/></g></svg><h2>Zatím žádný sklípek</h2><p>Dámská jízda může začít. Přidejte první sklep a zapisujte, co jste ochutnaly.</p><button class="btn primary" data-act="addCellar">Přidat sklípek</button><p style="margin-top:10px"><button class="btn" data-act="importFile">Obnovit ze zálohy</button></p></div>`;
+  const ws=allWines(), bottles=ws.reduce((a,x)=>a+(+x.w.buy||0),0);
+  let h=STORE||dbRef?'':`<div class="banner"><span>Tady se deník neukládá. Před zavřením si stáhněte zálohu.</span><button class="btn" data-act="trip">Záloha</button></div>`;
+  h+=`<div class="tally"><span><b>${state.cellars.length}</b>${pl(state.cellars.length,'sklípek','sklípky','sklípků')}</span><span><b>${ws.length}</b>${pl(ws.length,'víno','vína','vín')}</span><span><b>${bottles}</b>${pl(bottles,'lahev','lahve','lahví')} ke koupi</span></div>`;
+  const list=[...state.cellars].reverse();
+  list.forEach((c,i)=>{
+    const n=state.cellars.length-i;
+    const isOpen=openCellar===c.id||(openCellar===null&&i===0);
+    const r=(c.wines||[]).map(w=>w.rating).filter(Boolean);
+    const metaBits=[c.village,c.winemaker,dayLabel(c.ts)].filter(Boolean).map(esc);
+    metaBits.push(`${(c.wines||[]).length} ${pl((c.wines||[]).length,'víno','vína','vín')}`);
+    if(r.length)metaBits.push(`průměr ${avg(r).toFixed(1).replace('.',',')}`);
+    h+=`<section class="cellar">
+      <button class="cellar-head" data-toggle="${c.id}" aria-expanded="${isOpen}">
+        <span class="door d${(n-1)%4}">${n}</span>
+        <span><h2>${esc(c.name)}</h2><span class="meta">${metaBits.join(', ')}</span></span>
+      </button>`;
+    if(isOpen){
+      const q=encodeURIComponent([c.name,c.village].filter(Boolean).join(' '));
+      h+=`<div class="cellar-body">${c.note?`<p class="cellar-note">${esc(c.note)}</p>`:''}
+        ${(c.wines||[]).map(w=>wineRow(c,w)).join('')}
+        <div class="row-actions"><button class="btn primary" data-act="addWine" data-cellar="${c.id}">+ Víno</button>
+        <button class="btn" data-act="editCellar" data-cellar="${c.id}">Upravit</button>
+        <a class="btn" href="https://mapy.cz/zakladni?q=${q}" target="_blank" rel="noopener">Na mapě</a></div>
+      </div>`;
+    }
+    h+='</section>';
+  });
+  return h;
+}
+function renderRank(){
+  const ws=allWines();
+  if(!ws.length)return `<div class="empty"><h2>Žebříček je prázdný</h2><p>Jakmile ohodnotíte první vína, seřadí se tady od nejlepšího.</p></div>`;
+  const q=query.trim().toLowerCase();
+  const list=ws.filter(x=>!filterColor||x.w.color===filterColor)
+    .filter(x=>!q||[x.w.name,x.w.winery,x.c.name,x.c.village,x.w.notes,(x.w.aromas||[]).join(' ')].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=>(b.w.rating||0)-(a.w.rating||0)||(a.w.ts||0)-(b.w.ts||0));
+  let h=`<input class="search" id="search" type="search" placeholder="Hledat víno, sklep, aroma…" value="${esc(query)}" aria-label="Hledat">`;
+  h+=`<div class="filters"><button data-filter="" aria-pressed="${!filterColor}">Všechna</button>${COLORS.map(([k,l])=>`<button data-filter="${k}" aria-pressed="${filterColor===k}"><span class="dot c-${k}" style="margin:0"></span>${l}</button>`).join('')}</div>`;
+  if(!list.length)return h+`<div class="empty"><p>Tomuto výběru nic neodpovídá.</p></div>`;
+  h+=`<div class="list-section"><div class="plain" style="margin-top:14px">${list.map((x,i)=>wineRow(x.c,x.w,{showCellar:true,rank:x.w.rating?i+1:'',compact:false})).join('')}</div></div>`;
+  return h;
+}
+function renderShop(){
+  const groups=state.cellars.map(c=>({c,ws:(c.wines||[]).filter(w=>+w.buy>0)})).filter(g=>g.ws.length);
+  const exp=`<div class="row-actions" style="margin-top:20px"><button class="btn" data-act="export">Souhrn víkendu</button></div>`;
+  if(!groups.length)return `<div class="empty"><h2>Nákupní seznam je prázdný</h2><p>U vína nastavte počet lahví ke koupi a tady uvidíte, co kde vzít a kolik to dá dohromady.</p></div>`+(state.cellars.length?exp:'');
+  let total=0,bottles=0,h='';
+  groups.forEach(g=>{
+    let sub=0;g.ws.forEach(w=>{sub+=(+w.buy)*(+w.price||0);bottles+=+w.buy;});total+=sub;
+    h+=`<div class="list-section"><h3>${esc(g.c.name)}${g.c.village?`<span class="meta" style="font-family:inherit">, ${esc(g.c.village)}</span>`:''}</h3><div class="plain">${g.ws.map(w=>wineRow(g.c,w,{compact:true})).join('')}</div><div class="sum"><span>Ve sklípku</span><span>${kc(sub)}</span></div></div>`;
+  });
+  const boxes=Math.ceil(bottles/6);
+  h+=`<div class="sum" style="border-top:2px solid var(--ink);margin-top:8px"><span>Celkem ${bottles} ${pl(bottles,'lahev','lahve','lahví')}</span><span>${kc(total)}</span></div>`;
+  h+=`<p class="note">To je zhruba ${boxes} ${pl(boxes,'karton','kartony','kartonů')} po šesti. Ceny u vín bez vyplněné ceny se nepočítají.</p>`;
+  return h+exp;
+}
+function renderSommelier(){
+  const ws=allWines();
+  if(!ws.length)return `<div class="empty"><h2>Sommeliér čeká na data</h2><p>Zapište pár vín a tady uvidíte, jak víkend vypadá v číslech, verdikt sommeliéra a můžete se ho na cokoli zeptat.</p></div>`;
+  const rated=ws.filter(x=>x.w.rating);
+  const byColor={};ws.forEach(x=>{const k=x.w.color||'bile';byColor[k]=(byColor[k]||0)+1;});
+  const domColor=Object.entries(byColor).sort((a,b)=>b[1]-a[1])[0];
+  const varCount={};ws.forEach(x=>{const k=(x.w.name||'').trim();if(k)varCount[k]=(varCount[k]||0)+1;});
+  const topVar=Object.entries(varCount).sort((a,b)=>b[1]-a[1])[0];
+  const aro={};ws.forEach(x=>(x.w.aromas||[]).forEach(a=>aro[a]=(aro[a]||0)+1));
+  const topAro=Object.entries(aro).sort((a,b)=>b[1]-a[1]).slice(0,3).map(a=>a[0]);
+  const cellAvg=state.cellars.map(c=>({c,a:avg((c.wines||[]).map(w=>w.rating).filter(Boolean))})).filter(x=>x.a).sort((a,b)=>b.a-a.a)[0];
+  const best=rated.slice().sort((a,b)=>b.w.rating-a.w.rating)[0];
+  const GEN={bile:'bílých',ruzove:'růžových',cervene:'červených',oranzove:'oranžových'};
+  let lead=`Ochutnali jste ${ws.length} ${pl(ws.length,'víno','vína','vín')} v ${state.cellars.length} ${pl(state.cellars.length,'sklepě','sklepech','sklepech')}. `;
+  if(domColor&&domColor[1]/ws.length>=.5)lead+=`Nejvíc ${GEN[domColor[0]]} (${Math.round(domColor[1]/ws.length*100)}\u00a0%). `;
+  if(topVar&&topVar[1]>1)lead+=`Nejčastěji ve sklence: ${esc(topVar[0])}. `;
+  if(topAro.length)lead+=`V nose se opakovalo: ${topAro.map(esc).join(', ')}. `;
+  if(cellAvg)lead+=`Nejlépe hodnocený sklep: ${esc(cellAvg.c.name)}.`;
+  let h=`<p class="lead">${lead}</p>`;
+  h+=`<div class="bars" role="img" aria-label="Hodnocení vín v pořadí ochutnávání">${ws.map(x=>`<span title="${esc(x.w.name)}" style="background:${colorVar(x.w.color)};height:${x.w.rating?x.w.rating*20:8}%"></span>`).join('')}</div>`;
+  h+=`<div class="colorbar">${COLORS.filter(([k])=>byColor[k]).map(([k])=>`<span style="flex:${byColor[k]};background:${colorVar(k)}"></span>`).join('')}</div>`;
+  h+=`<div class="legend">${COLORS.filter(([k])=>byColor[k]).map(([k,l])=>`<span><i class="dot c-${k}"></i>${l} ${byColor[k]}</span>`).join('')}${best?`<span>Vítěz: ${esc(best.w.name)}</span>`:''}</div>`;
+
+  h+=`<div class="list-section"><h3>Verdikt víkendu</h3>`;
+  if(!CAP.sample){h+=`<p class="note">Sommeliér poháněný Claudem tu není dostupný. Statistiky výše fungují i bez něj.</p></div>`;return h;}
+  const vt=AI.verdictLive!==null?AI.verdictLive:(state.verdict&&state.verdict.text);
+  if(vt!==undefined&&vt!==null&&vt!=='')h+=`<div class="prose" id="verdict">${md(vt)}</div>`;
+  else if(AI.verdictLive==='')h+=`<div class="prose" id="verdict"><p class="thinking">Sommeliér ochutnává váš deník…</p></div>`;
+  h+=`<div class="row-actions">${AI.verdictCtl?`<button class="btn" data-act="stopVerdict">Zastavit</button>`:`<button class="btn ai" data-act="verdict">✨ ${state.verdict?'Napsat verdikt znovu':'Napsat verdikt víkendu'}</button>`}
+     ${state.verdict&&!AI.verdictCtl?`<span class="note" style="margin:0">${esc(dayLabel(state.verdict.at))}, ${state.verdict.n||'?'} vín</span>`:''}</div></div>`;
+
+  h+=`<div class="list-section"><h3>Zeptejte se sommeliéra</h3><div class="chat" id="chatLog">${renderChatLog()}</div>`;
+  if(!AI.chat.length)h+=`<div class="suggest">${['Co si dát k večeři?','Které víno je nejlepší koupě?','Co ochutnat zítra?','Proč mi chutná Pálava?'].map(s=>`<button data-suggest="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
+  h+=`<form class="ask" id="askForm"><input id="askInput" placeholder="Zeptejte se na cokoli o vínech z deníku" autocomplete="off" aria-label="Otázka pro sommeliéra">${AI.chatBusy?`<button type="button" class="btn" data-act="stopChat">Stop</button>`:`<button class="btn primary" type="submit">Zeptat</button>`}</form></div>`;
+  return h;
+}
+function renderChatLog(){
+  return AI.chat.map(t=>t.role==='user'?`<div class="bubble u">${esc(t.content)}</div>`:`<div class="bubble a">${t.content?md(t.content):'<p class="thinking">Přemýšlím…</p>'}</div>`).join('');
+}
+
+/* ---------- AI ---------- */
+function diaryText(){
+  let t=`Víkend: ${state.trip.name||''} ${state.trip.dates||''}\n`;
+  state.cellars.forEach((c,i)=>{
+    t+=`\nSklep ${i+1}: ${c.name}${c.village?', '+c.village:''}${c.winemaker?', vinař '+c.winemaker:''}${c.note?' (poznámka: '+c.note+')':''}\n`;
+    (c.wines||[]).forEach(w=>{
+      const bits=[w.name,w.winery,w.vintage,w.predikat,w.sweetness,COLOR_LABEL[w.color]||'',w.body?'tělo '+w.body.toLowerCase():'',w.acid?'kyselina '+w.acid.toLowerCase():'',w.rating?`hodnocení ${w.rating}/5`:'bez hodnocení',w.price?`${w.price} Kč`:'',+w.buy?`chci koupit ${w.buy} lahví`:''].filter(Boolean);
+      t+=`- ${bits.join(', ')}${(w.aromas||[]).length?'; aromata: '+w.aromas.join(', '):''}${w.notes?'; poznámka: '+w.notes:''}\n`;
+    });
+  });
+  return t;
+}
+const PERSONA='Jsi zkušený moravský sommeliér, mluvíš česky a o sobě v mužském rodě. Jsi přátelský, konkrétní a stručný. Opírej se jen o údaje z deníku a obecné znalosti o odrůdách a moravských vinařských podoblastech; nevymýšlej si fakta o konkrétních vinařstvích ani cenách. Nepoužívej dlouhou pomlčku (\u2014), jen krátkou (\u2013).';
+
+async function runVerdict(){
+  if(!CAP.sample||AI.verdictCtl)return;
+  AI.verdictCtl=new AbortController();AI.verdictLive='';render();
+  const prompt=`${PERSONA}\n\nNíže je můj deník z víkendu po vinných sklepech. Napiš verdikt víkendu v této struktuře, nadpisy tučně (**…**), odrážky pomlčkou:\n**Můj vinný profil** – jeden odstavec, jaký styl vína mi chutná (opři se o hodnocení, barvy, sladkost, tělo, aromata).\n**Top 3 víkendu** – tři vína se stručným zdůvodněním.\n**Co si odvézt** – co z ochutnaného stojí za koupi a proč; pokud mám nákupní seznam, okomentuj ho.\n**Příště ochutnat** – 2 až 3 tipy na odrůdy, styly nebo podoblasti, které odpovídají mému profilu.\nBez úvodu a závěrečných frází. Pokud je vín málo, řekni to a buď opatrný v závěrech.\n\nDENÍK:\n${diaryText()}`;
+  try{
+    const {text}=await CAP.sample(prompt,{signal:AI.verdictCtl.signal,cache:false,onText:({text})=>{AI.verdictLive=text;const el=$('verdict');if(el)el.innerHTML=md(text);else if(tab==='sommelier')render();}});
+    state.verdict={text:clean(text),at:Date.now(),n:allWines().length};AI.verdictLive=null;AI.verdictCtl=null;commit();
+  }catch(e){
+    const msg=aiErr(e);AI.verdictCtl=null;
+    AI.verdictLive=null; if(e&&e.text&&e.code!=='refused'){state.verdict={text:clean(e.text)+'\n\n*(nedokončeno)*',at:Date.now(),n:allWines().length};commit();} else render();
+    if(msg)toast(msg);
+  }
+}
+async function sendChat(q){
+  q=(q||'').trim(); if(!q||!CAP.sample||AI.chatBusy)return;
+  AI.chat.push({role:'user',content:q});AI.chat.push({role:'assistant',content:''});AI.chatBusy=true;AI.chatCtl=new AbortController();render();
+  const turns=[{role:'user',content:`${PERSONA}\nOdpovídej krátce (nejvýš pár vět nebo pár odrážek), prostý text s lehkým markdownem.\n\nMŮJ DENÍK:\n${diaryText()}\n\nPotvrď, že máš deník přečtený.`},{role:'assistant',content:'Deník mám přečtený. Ptejte se.'},...AI.chat.slice(0,-1).slice(-10)];
+  const slot=AI.chat[AI.chat.length-1];
+  try{
+    const {text}=await CAP.sample(turns,{cache:false,signal:AI.chatCtl.signal,onText:({text})=>{slot.content=text;const log=$('chatLog');if(log){log.lastElementChild.innerHTML=md(text);}}});
+    slot.content=clean(text);
+  }catch(e){const msg=aiErr(e);slot.content=e&&e.text?clean(e.text):(msg||'(zastaveno)');}
+  AI.chatBusy=false;AI.chatCtl=null;render();
+  const inp=$('askInput');if(inp)inp.focus();
+}
+
+async function compressImage(file,max,q){max=max||1600;q=q||.85;
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+    const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const cv=document.createElement('canvas');cv.width=Math.round(img.naturalWidth*s);cv.height=Math.round(img.naturalHeight*s);
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    return await new Promise(res=>cv.toBlob(b=>res(b||file),'image/jpeg',q));
+  }finally{URL.revokeObjectURL(url);}
+}
+async function handlePhoto(file){
+  if(!file)return;
+  const status=$('aiStatus');const say=t=>{if(status)status.textContent=t;};
+  let blob,thumb;
+  try{blob=await compressImage(file,1600,.85);}catch(_){say('Fotku se nepodařilo otevřít.');return;}
+  const prev=$('photoPrev');const local=URL.createObjectURL(blob);if(prev){prev.src=local;prev.hidden=false;}
+  readWineForm();
+  const jobs=[];
+  const keepLocal=async()=>{try{const tb=await compressImage(blob,480,.7);thumb=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(tb);});draft._photo=thumb;delete draft.photoId;}catch(_){say('Fotku se nepodařilo uložit.');}};
+  if(CAP.assets){jobs.push(CAP.assets.upload(blob,{type:'image/jpeg'}).then(r=>{draft.photoId=r.id;delete draft._photo;}).catch(keepLocal));}
+  else jobs.push(keepLocal());
+  if(CAP.sample&&CAP.imgOK){
+    say('Sommeliér čte etiketu…');
+    const prompt=`Na fotce je etiketa vína (nejspíš moravského). Přečti ji a vrať pouze JSON objekt s klíči:
+"name": odrůda nebo název vína tak, jak by ho člověk zapsal do deníku (např. „Ryzlink vlašský“, „Cuvée Hana“),
+"winery": vinařství nebo null,
+"vintage": ročník jako text nebo null,
+"predikat": přesně jedna z hodnot ${JSON.stringify(PRED)} nebo null,
+"sweetness": přesně jedna z hodnot ${JSON.stringify(SWEET)} nebo null,
+"color": přesně jedna z hodnot ["bile","ruzove","cervene","oranzove"] nebo null.
+Co na etiketě není čitelné, vrať jako null. Nehádej.`;
+    jobs.push(CAP.sample.json(prompt,{images:blob}).then(d=>{
+      if(!d||typeof d!=='object')return;
+      const set=(k,v)=>{if(v&&!draft[k])draft[k]=String(v);};
+      set('name',d.name);set('winery',d.winery);set('vintage',d.vintage);
+      if(PRED.includes(d.predikat)&&!draft.predikat)draft.predikat=d.predikat;
+      if(SWEET.includes(d.sweetness)&&!draft.sweetness)draft.sweetness=d.sweetness;
+      if(['bile','ruzove','cervene','oranzove'].includes(d.color)&&!draft._colorTouched)draft.color=d.color;
+      syncWineForm();say('Hotovo. Zkontrolujte údaje, doplňte dojem a hodnocení.');
+    }).catch(e=>say(aiErr(e))));
+  }
+  await Promise.all(jobs);
+  if(!CAP.sample||!CAP.imgOK){if(draft.photoId||draft._photo)say('Fotka připravena, uloží se s vínem.');}
+}
+async function polishNote(btn){
+  if(!CAP.sample)return;readWineForm();
+  const ta=$('wNotes'),status=$('aiStatus');
+  if(!draft.name){toast('Nejdřív vyplňte odrůdu nebo název');return;}
+  btn.disabled=true;if(status)status.textContent='Sommeliér píše poznámku…';
+  const prompt=`${PERSONA}\n\nZ mých údajů o víně napiš stručnou degustační poznámku (2 až 3 krátké věty) a na nový řádek „Ke stolu: …“ s jedním až dvěma tipy na jídlo. Vycházej z údajů; když doplníš něco typického pro odrůdu, uveď to slovem „typicky“. Jen prostý text, bez úvodu.\n\nVíno: ${[draft.name,draft.winery,draft.vintage,draft.predikat,draft.sweetness,COLOR_LABEL[draft.color]].filter(Boolean).join(', ')}\nTělo: ${draft.body||'neuvedeno'}, kyselina: ${draft.acid||'neuvedeno'}\nAromata: ${(draft.aromas||[]).join(', ')||'neuvedena'}\nHodnocení: ${draft.rating?draft.rating+'/5':'neuvedeno'}\nMoje rychlé poznámky: ${draft.notes||'žádné'}`;
+  const orig=ta.value;
+  try{const {text}=await CAP.sample(prompt,{onText:({text})=>{ta.value=clean(text);}});ta.value=clean(text);draft.notes=ta.value;if(status)status.textContent='Poznámku můžete dál upravit.';}
+  catch(e){ta.value=e&&e.text?clean(e.text):orig;if(status)status.textContent=aiErr(e);}
+  btn.disabled=false;
+}
+
+/* ---------- sheets ---------- */
+let lastFocus=null;
+function openSheet(html){lastFocus=document.activeElement;$('sheetBody').innerHTML=html;$('scrim').classList.add('open');$('sheet').classList.add('open');$('sheet').scrollTop=0;const f=$('sheetBody').querySelector('input:not([type=file]),textarea');if(f&&!f.value)setTimeout(()=>f.focus({preventScroll:true}),240);}
+function closeSheet(){$('scrim').classList.remove('open');$('sheet').classList.remove('open');if(lastFocus&&lastFocus.focus)try{lastFocus.focus({preventScroll:true});}catch(_){}}
+$('scrim').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+
+function confirmSheet(title,text,yesLabel,onYes){
+  openSheet(`<h2 id="sheetTitle">${esc(title)}</h2><p>${esc(text)}</p><div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zpět</button><button class="btn primary" id="yesBtn">${esc(yesLabel)}</button></div>`);
+  $('yesBtn').onclick=()=>{closeSheet();onYes();};
+}
+function tripSheet(){
+  openSheet(`<h2 id="sheetTitle">Víkend</h2>
+  <label class="f">Název<input id="fTrip" value="${esc(state.trip.name)}"></label>
+  <label class="f">Termín a místo<input id="fDates" value="${esc(state.trip.dates)}" placeholder="např. 24.–25. 10., Velké Bílovice"></label>
+  <hr><h3 style="font-size:19px">Záloha dat</h3>
+  <p class="note">${dbRef?'Deník se ukládá k vašemu účtu a je dostupný na všech vašich zařízeních.':STORE?'Deník se ukládá jen v tomto prohlížeči. Záloha se hodí při výměně telefonu nebo pro přenos jinam.':'V tomto prostředí se deník neukládá. Před zavřením si stáhněte zálohu.'}${state.lastBackupAt?` Poslední záloha: ${esc(dayLabel(state.lastBackupAt))}.`:''}</p>
+  ${window.VD_HOSTED&&!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)&&!navigator.standalone?'<p class="note">Tip: přidejte si aplikaci na plochu telefonu (v prohlížeči Sdílet, pak Přidat na plochu). Pak se otevře i bez signálu ve sklepě a data se v telefonu drží spolehlivěji.</p>':''}
+  <div class="row-actions"><button class="btn" data-act="backupDownload">Stáhnout zálohu</button><button class="btn" data-act="backupCopy">Zkopírovat jako text</button><button class="btn" data-act="importFile">Obnovit ze souboru</button><button class="btn" data-act="importPaste">Vložit text zálohy</button></div>
+  <div class="row-actions"><button class="btn danger" data-act="newTrip">Začít nový víkend</button></div>
+  <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="saveTrip">Uložit</button></div>`);
+}
+function cellarSheet(c){
+  c=c||{};
+  openSheet(`<h2 id="sheetTitle">${c.id?'Upravit sklípek':'Nový sklípek'}</h2>
+  <label class="f">Název sklepa nebo vinařství<input id="fName" value="${esc(c.name)}" placeholder="např. Sklep U Kapličky"></label>
+  <div class="grid2"><label class="f">Obec<input id="fVillage" value="${esc(c.village)}" placeholder="např. Pavlov"></label>
+  <label class="f">Vinař<input id="fMaker" value="${esc(c.winemaker)}"></label></div>
+  <label class="f">Poznámka ke sklepu<textarea id="fNote" placeholder="atmosféra, kontakt, co přivézt příště">${esc(c.note)}</textarea></label>
+  <div class="sheet-actions">${c.id?`<button class="btn danger" data-act="delCellar" data-cellar="${c.id}">Smazat</button>`:''}<span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="saveCellar" data-cellar="${c.id||''}">Uložit</button></div>`);
+}
+let draft={},draftCellar=null;
+function segHtml(key,vals,labels){return vals.map((v,i)=>`<button type="button" data-seg="${key}" data-val="${esc(v)}" aria-pressed="${draft[key]===v}">${labels?labels[i]:esc(v)}</button>`).join('');}
+function wineSheet(cellarId,w){
+  const c=findCellar(cellarId);draftCellar=cellarId;
+  draft=JSON.parse(JSON.stringify(Object.assign({color:'bile',rating:0,buy:0,aromas:[]},w||{})));
+  const colorBtns=COLORS.map(([k,l])=>`<button type="button" data-seg="color" data-val="${k}" aria-pressed="${draft.color===k}"><span class="dot c-${k}" style="margin:0"></span>${l}</button>`).join('');
+  const aiPhoto=CAP.sample&&CAP.imgOK, canPhoto=true;
+  const pu=photoUrl(draft);
+  openSheet(`<h2 id="sheetTitle">${w?'Upravit víno':'Nové víno'}</h2><div class="meta">ve sklípku ${esc(c.name)}</div>
+  ${canPhoto?`<div class="photo-row"><button type="button" class="btn ${aiPhoto?'ai':''}" data-act="photo">📷 ${aiPhoto?'Vyfotit etiketu a vyplnit':'Přidat fotku etikety'}</button></div>`:''}
+  <img class="photo-prev" id="photoPrev" alt="Fotka etikety" ${pu?`src="${pu}"`:'hidden'}>
+  <div class="ai-status" id="aiStatus" aria-live="polite"></div>
+  <label class="f">Odrůda nebo název<input id="wName" value="${esc(draft.name)}" placeholder="např. Ryzlink vlašský" list="odrudy" autocomplete="off"></label>
+  <datalist id="odrudy">${VARIETIES.map(o=>`<option value="${o}">`).join('')}</datalist>
+  <div class="grid2"><label class="f">Vinařství<input id="wWinery" value="${esc(draft.winery)}"></label>
+  <label class="f">Ročník<input id="wVintage" inputmode="numeric" value="${esc(draft.vintage)}" placeholder="např. 2023"></label></div>
+  <label class="f">Přívlastek<select id="wPred"><option value=""></option>${PRED.map(p=>`<option ${draft.predikat===p?'selected':''}>${p}</option>`).join('')}</select></label>
+  <span class="flabel">Barva</span><div class="seg" data-group="color">${colorBtns}</div>
+  <span class="flabel">Sladkost</span><div class="seg" data-group="sweetness">${segHtml('sweetness',SWEET)}</div>
+  <span class="flabel">Hodnocení</span><div class="rate" id="rate"></div>
+  <span class="flabel">Tělo</span><div class="seg small" data-group="body">${segHtml('body',BODY)}</div>
+  <span class="flabel">Kyselina</span><div class="seg small" data-group="acid">${segHtml('acid',ACID)}</div>
+  <span class="flabel">Vůně a chuť</span>
+  ${Object.entries(AROMAS).map(([g,list])=>`<div class="aroma-group"><span class="meta">${g}</span><div class="seg small">${list.map(a=>`<button type="button" data-aroma="${esc(a)}" aria-pressed="${draft.aromas.includes(a)}">${esc(a)}</button>`).join('')}</div></div>`).join('')}
+  <label class="f">Dojem a poznámky<textarea id="wNotes" placeholder="pár slov stačí, sommeliér je umí učesat">${esc(draft.notes)}</textarea></label>
+  ${CAP.sample?`<div class="row-actions"><button type="button" class="btn ai" data-act="polish">✨ Učesat poznámku a přidat párování</button></div>`:''}
+  <div class="grid2"><label class="f">Cena za lahev (Kč)<input id="wPrice" inputmode="decimal" value="${draft.price?esc(draft.price):''}"></label>
+  <label class="f">Koupit lahví<input id="wBuy" inputmode="numeric" value="${draft.buy?esc(draft.buy):''}" placeholder="0"></label></div>
+  <div class="sheet-actions">${w?`<button class="btn danger" data-act="delWine" data-cellar="${cellarId}" data-wine="${w.id}">Smazat</button>`:''}<span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="saveWine" data-cellar="${cellarId}" data-wine="${w?w.id:''}">Uložit</button></div>`);
+  drawRate();
+}
+function drawRate(){const r=$('rate');if(!r)return;let s='';for(let i=1;i<=5;i++)s+=`<button type="button" data-rate="${i}" aria-label="${i} z 5" aria-pressed="${i===draft.rating}">${glassSvg(i<=draft.rating)}</button>`;r.innerHTML=s;}
+function readWineForm(){
+  if(!$('wName'))return;
+  draft.name=$('wName').value.trim();draft.winery=$('wWinery').value.trim();draft.vintage=$('wVintage').value.trim();draft.predikat=$('wPred').value;
+  draft.notes=$('wNotes').value.trim();draft.price=parseFloat(($('wPrice').value||'').replace(/\s/g,'').replace(',','.'))||0;draft.buy=parseInt($('wBuy').value,10)||0;
+}
+function syncWineForm(){
+  if(!$('wName'))return;
+  $('wName').value=draft.name||'';$('wWinery').value=draft.winery||'';$('wVintage').value=draft.vintage||'';$('wPred').value=draft.predikat||'';
+  document.querySelectorAll('#sheetBody [data-seg]').forEach(b=>b.setAttribute('aria-pressed',String(draft[b.dataset.seg]===b.dataset.val)));
+}
+function exportText(){
+  let t=`# ${state.trip.name||'Víkend'}${state.trip.dates?` (${state.trip.dates})`:''}\n\n`;
+  state.cellars.forEach((c,i)=>{
+    t+=`## ${i+1}. ${c.name}${c.village?', '+c.village:''}\n`;if(c.note)t+=`_${c.note}_\n`;t+='\n';
+    (c.wines||[]).forEach(w=>{
+      t+=`- **${w.name||'Bez názvu'}**${[w.winery,w.vintage,w.predikat,w.sweetness].filter(Boolean).length?' ('+[w.winery,w.vintage,w.predikat,w.sweetness].filter(Boolean).join(', ')+')':''}${w.rating?' '+'🍷'.repeat(w.rating):''}${w.price?', '+kc(w.price):''}${+w.buy?', koupit '+w.buy+'×':''}\n`;
+      if((w.aromas||[]).length)t+=`  aromata: ${w.aromas.join(', ')}\n`;
+      if(w.notes)t+=`  ${w.notes.replace(/\n/g,'\n  ')}\n`;
+    });
+    t+='\n';
+  });
+  if(state.verdict&&state.verdict.text)t+=`## Verdikt sommeliéra\n\n${state.verdict.text}\n`;
+  return clean(t);
+}
+function exportSheet(){
+  const t=exportText();
+  openSheet(`<h2 id="sheetTitle">Souhrn víkendu</h2><textarea class="copybox" id="copybox" readonly>${esc(t)}</textarea>
+  <div class="sheet-actions"><button class="btn" data-act="close">Zavřít</button><span class="spacer"></span><button class="btn" data-act="download">Stáhnout</button><button class="btn primary" data-act="copy">Zkopírovat</button></div>`);
+}
+
+/* ---------- backup ---------- */
+function backupJson(){return JSON.stringify({app:'vinny-denik',version:2,exportedAt:new Date().toISOString(),state,photos});}
+function stamp(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+async function saveFile(name,data,mime){
+  if(CAP.downloads){
+    try{await CAP.downloads.save({filename:name,data});return 'ok';}
+    catch(e){if(e&&e.code==='declined')return 'cancel';}
+  }
+  try{const b=new Blob([data],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return 'ok';}
+  catch(e){return 'fail';}
+}
+function markBackup(){state.lastBackupAt=Date.now();commit({silent:true});}
+function textSheet(title,text,hint){
+  openSheet(`<h2 id="sheetTitle">${esc(title)}</h2>${hint?`<p class="note">${esc(hint)}</p>`:''}<textarea class="copybox" id="copybox" readonly>${esc(text)}</textarea>
+  <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zavřít</button><button class="btn primary" data-act="copy">Zkopírovat</button></div>`);
+}
+function importBackup(text){
+  let d;try{d=JSON.parse(String(text||'').trim());}catch(e){return toast('Tohle není záloha deníku');}
+  if(!d||d.app!=='vinny-denik'||!d.state||!Array.isArray(d.state.cellars))return toast('Tohle není záloha deníku');
+  let n=0;d.state.cellars.forEach(c=>n+=(c.wines||[]).length);
+  confirmSheet('Obnovit zálohu?',`Současný deník nahradí záloha „${(d.state.trip&&d.state.trip.name)||'Víkend'}“ (${d.state.cellars.length} ${pl(d.state.cellars.length,'sklípek','sklípky','sklípků')}, ${n} ${pl(n,'víno','vína','vín')}).`,'Obnovit',()=>{
+    state=d.state;state.updatedAt=Date.now();photos=(d.photos&&typeof d.photos==='object')?d.photos:{};
+    if(!savePhotos())toast('Fotky se do paměti nevešly');
+    openCellar=null;AI.chat=[];commit();toast('Deník obnoven');
+  });
+}
+$('backupInput').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>importBackup(r.result);r.onerror=()=>toast('Soubor se nepodařilo přečíst');r.readAsText(f);});
+
+/* ---------- events ---------- */
+document.addEventListener('submit',e=>{if(e.target.id==='askForm'){e.preventDefault();const i=$('askInput');const q=i.value;i.value='';sendChat(q);}});
+document.addEventListener('input',e=>{
+  if(e.target.id==='search'){query=e.target.value;const pos=e.target.selectionStart;render();const s=$('search');if(s){s.focus();try{s.setSelectionRange(pos,pos);}catch(_){}}}
+});
+$('photoInput').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';handlePhoto(f);});
+
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('button,a[data-act]');
+  if(!t||t.id==='toastBtn'||t.id==='yesBtn')return;
+  if(t.dataset.tab){tab=t.dataset.tab;try{history.replaceState(null,'','#'+tab);}catch(_){}window.scrollTo(0,0);return render();}
+  if(t.dataset.toggle){openCellar=(openCellar===t.dataset.toggle||(openCellar===null&&t.getAttribute('aria-expanded')==='true'))?'':t.dataset.toggle;return render();}
+  if(t.dataset.filter!==undefined){filterColor=t.dataset.filter;return render();}
+  if(t.dataset.suggest){return sendChat(t.dataset.suggest);}
+  if(t.dataset.seg){const k=t.dataset.seg,v=t.dataset.val;
+    draft[k]=(draft[k]===v&&k!=='color')?'':v; if(k==='color')draft._colorTouched=true;
+    t.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.val===draft[k])));return;}
+  if(t.dataset.aroma){const a=t.dataset.aroma,i=draft.aromas.indexOf(a);if(i>=0)draft.aromas.splice(i,1);else draft.aromas.push(a);t.setAttribute('aria-pressed',String(i<0));return;}
+  if(t.dataset.rate){const n=+t.dataset.rate;draft.rating=draft.rating===n?0:n;return drawRate();}
+  if(t.classList.contains('wine')&&t.dataset.wine){const c=findCellar(t.dataset.cellar);const w=(c.wines||[]).find(x=>x.id===t.dataset.wine);return wineSheet(c.id,w);}
+  const act=t.dataset.act;if(!act)return;
+  switch(act){
+    case 'trip':return tripSheet();
+    case 'backupDownload':{const r=await saveFile(`vinny-denik-zaloha-${stamp()}.json`,backupJson(),'application/json');if(r==='ok'){markBackup();toast('Záloha připravena ke stažení');}else if(r==='fail'){textSheet('Záloha jako text',backupJson(),'Stažení tu není povolené. Zkopírujte text a uložte si ho třeba do poznámek.');}return;}
+    case 'backupCopy':markBackup();return textSheet('Záloha jako text',backupJson(),'Zkopírujte celý text a uložte si ho. Obnovíte ho tlačítkem Vložit text zálohy.');
+    case 'importFile':return $('backupInput').click();
+    case 'importPaste':openSheet(`<h2 id="sheetTitle">Vložit zálohu</h2><p class="note">Vložte celý text zálohy.</p><textarea class="copybox" id="pasteBox"></textarea><div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="importGo">Obnovit</button></div>`);return;
+    case 'importGo':return importBackup($('pasteBox').value);
+    case 'newTrip':return confirmSheet('Začít nový víkend?','Aktuální deník se smaže. Pokud ho chcete mít, nejdřív si stáhněte zálohu.','Začít nový',()=>{state={trip:{name:'Víkend na Moravě',dates:''},cellars:[],updatedAt:Date.now(),lastBackupAt:state.lastBackupAt};photos={};savePhotos();AI.chat=[];AI.verdictLive=null;openCellar=null;tab='sklipky';commit();toast('Nový víkend připraven');});
+    case 'addCellar':return cellarSheet();
+    case 'close':return closeSheet();
+    case 'editCellar':return cellarSheet(findCellar(t.dataset.cellar));
+    case 'addWine':return wineSheet(t.dataset.cellar);
+    case 'export':return exportSheet();
+    case 'photo':return $('photoInput').click();
+    case 'polish':return polishNote(t);
+    case 'verdict':return runVerdict();
+    case 'stopVerdict':if(AI.verdictCtl)AI.verdictCtl.abort();return;
+    case 'stopChat':if(AI.chatCtl)AI.chatCtl.abort();return;
+    case 'saveTrip':state.trip.name=$('fTrip').value.trim()||'Víkend na Moravě';state.trip.dates=$('fDates').value.trim();closeSheet();return commit();
+    case 'saveCellar':{
+      const name=$('fName').value.trim();if(!name){$('fName').focus();return toast('Doplňte název sklepa');}
+      const data={name,village:$('fVillage').value.trim(),winemaker:$('fMaker').value.trim(),note:$('fNote').value.trim()};
+      if(t.dataset.cellar)Object.assign(findCellar(t.dataset.cellar),data);
+      else{const c=Object.assign({id:uid(),ts:Date.now(),wines:[]},data);state.cellars.push(c);openCellar=c.id;tab='sklipky';}
+      closeSheet();commit();return toast('Sklípek uložen');}
+    case 'delCellar':{
+      const id=t.dataset.cellar,c=findCellar(id),idx=state.cellars.indexOf(c);
+      return confirmSheet('Smazat sklípek?',`${c.name} i se všemi víny (${(c.wines||[]).length}) zmizí z deníku.`,'Smazat',()=>{
+        state.cellars.splice(idx,1);commit();toast('Sklípek smazán',{label:'Vrátit',fn:()=>{state.cellars.splice(idx,0,c);commit();}});});}
+    case 'saveWine':{
+      readWineForm();
+      if(!draft.name){$('wName').focus();return toast('Doplňte odrůdu nebo název');}
+      const c=findCellar(t.dataset.cellar);c.wines=c.wines||[];
+      const w=Object.assign({},draft);delete w._colorTouched;const newPhoto=w._photo;delete w._photo;
+      if(t.dataset.wine){const i=c.wines.findIndex(x=>x.id===t.dataset.wine);c.wines[i]=w;}
+      else{w.id=uid();w.ts=Date.now();c.wines.push(w);}
+      if(newPhoto){photos[w.id]=newPhoto;if(!savePhotos()){delete photos[w.id];toast('Paměť prohlížeče je plná, fotku jsem neuložil');}}
+      openCellar=c.id;closeSheet();commit();return toast(t.dataset.wine?'Víno upraveno':'Víno zapsáno');}
+    case 'delWine':{
+      const c=findCellar(t.dataset.cellar),i=c.wines.findIndex(w=>w.id===t.dataset.wine),w=c.wines[i];
+      c.wines.splice(i,1);closeSheet();commit();
+      return toast('Víno smazáno',{label:'Vrátit',fn:()=>{c.wines.splice(i,0,w);commit();}});}
+    case 'copy':{const box=$('copybox');try{await navigator.clipboard.writeText(box.value);toast('Zkopírováno');}catch(_){box.focus();box.select();toast('Text je označený, zkopírujte ho ručně');}return;}
+    case 'download':{
+      const r=await saveFile((state.trip.name||'vinny-denik').replace(/[^\p{L}\p{N} _-]/gu,'').trim().replace(/\s+/g,'-')+'.md',exportText(),'text/markdown');
+      if(r==='ok')toast('Souhrn připraven ke stažení');else if(r==='fail')toast('Stažení tu není povolené, použijte Zkopírovat');
+      return;}
+  }
+});
+
+localStatus();render();initDb();initCaps();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{});}
+</script>
+</body>
+</html>
