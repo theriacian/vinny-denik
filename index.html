@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vinný deník">
 <meta name="theme-color" content="#C93A63">
+<script>try{var t=localStorage.getItem('vinny-denik-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -63,6 +64,14 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .trip h1 svg{flex:none;width:30px;height:34px}
 .trip .dates{color:var(--muted);font-size:15px}
 .status{font-size:13px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.trip-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.theme-tg{position:relative;flex:none;width:56px;height:30px;border-radius:15px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;padding:0 7px;color:var(--muted)}
+.theme-tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ruby);transition:transform .2s}
+.theme-tg[aria-checked="true"]::after{transform:translateX(26px)}
+.theme-tg svg{position:relative;z-index:1;width:14px;height:14px}
+.theme-tg[aria-checked="false"] .sun,.theme-tg[aria-checked="true"] .moon{color:var(--ruby-ink)}
+@media (prefers-reduced-motion: reduce){.theme-tg::after{transition:none}}
+.empty .row-actions{justify-content:center}
 .status i{width:8px;height:8px;border-radius:50%;background:var(--vine);display:inline-block}
 .status.local i{background:var(--straw)}
 .strip{display:flex;gap:3px;height:8px;margin-top:10px;border-radius:4px;overflow:hidden;background:var(--line)}
@@ -220,7 +229,8 @@ label.f{display:block;margin:14px 0 0;font-size:15px;color:var(--muted)}
         <h1><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M15 9 Q15 5 12 3" stroke="var(--vstem)" stroke-width="1.6" fill="none" stroke-linecap="round"/><use href="#vd-lf" transform="translate(20 6) rotate(35) scale(.4)"/><g transform="translate(8 14) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(15 13) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(22 14.5) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(11.5 20.5) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(18.5 21) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(15 27.5) scale(.88)"><use href="#vd-gp"/></g></svg><span id="tripName">Víkend na Moravě</span></h1>
         <div class="dates" id="tripDates"></div>
       </button>
-      <div class="status" id="status"><i></i><span>Načítám…</span></div>
+      <div class="trip-side"><button class="theme-tg" data-act="theme" role="switch" aria-checked="false" aria-label="Tmavý režim"><svg class="sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><svg class="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg></button>
+      <div class="status" id="status"><i></i><span>Načítám…</span></div></div>
     </div>
     <div class="strip" id="strip" aria-hidden="true"></div>
     <nav class="tabs" role="tablist">
@@ -283,6 +293,12 @@ const kc=n=>(Math.round(n)||0).toLocaleString('cs-CZ')+'\u00a0Kč';
 const clean=t=>String(t||'').replace(/\u2014/g,'\u2013');
 const pl=(n,a,b,c)=>n===1?a:(n>=2&&n<=4?b:c);
 
+const THEME_KEY='vinny-denik-theme';
+const darkMQ=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+const isDark=()=>{const t=document.documentElement.getAttribute('data-theme');return t?t==='dark':!!(darkMQ&&darkMQ.matches);};
+function syncTheme(){const b=document.querySelector('[data-act=theme]');if(b)b.setAttribute('aria-checked',String(isDark()));}
+function toggleTheme(){const t=isDark()?'light':'dark';document.documentElement.setAttribute('data-theme',t);if(STORE)try{STORE.setItem(THEME_KEY,t);}catch(_){}syncTheme();}
+if(darkMQ&&darkMQ.addEventListener)darkMQ.addEventListener('change',syncTheme);
 function setStatus(t,local){const el=$('status');el.classList.toggle('local',!!local);el.querySelector('span').textContent=t;}
 let toastT;
 function toast(msg,action){
@@ -856,6 +872,7 @@ document.addEventListener('click',async e=>{
   const act=t.dataset.act;if(!act)return;
   switch(act){
     case 'trip':return tripSheet();
+    case 'theme':return toggleTheme();
     case 'backupDownload':{const r=await saveFile(`vinny-denik-zaloha-${stamp()}.json`,backupJson(),'application/json');if(r==='ok'){markBackup();toast('Záloha připravena ke stažení');}else if(r==='fail'){textSheet('Záloha jako text',backupJson(),'Stažení tu není povolené. Zkopírujte text a uložte si ho třeba do poznámek.');}return;}
     case 'backupCopy':markBackup();return textSheet('Záloha jako text',backupJson(),'Zkopírujte celý text a uložte si ho. Obnovíte ho tlačítkem Vložit text zálohy.');
     case 'importFile':return $('backupInput').click();
@@ -907,7 +924,7 @@ document.addEventListener('click',async e=>{
   }
 });
 
-localStatus();render();initDb();initCaps();
+syncTheme();localStatus();render();initDb();initCaps();
 })();
 </script>
 <script>
