@@ -10,6 +10,7 @@ Zápisník z ochutnávek po moravských vinných sklípcích. Statický web bez 
 
 ## Nasazení
 Vercel je napojený na tento repozitář. Každý push do větve `main` se automaticky nasadí do produkce, ostatní větve dostanou náhledovou adresu.
+Produkční větev je ve Vercelu nastavená v Settings → Environments → Production → Branch Tracking a musí být `main`.
 
 ## Úpravy
 - Změny v `index.html` se k uživatelům dostanou samy při příštím otevření s internetem.
