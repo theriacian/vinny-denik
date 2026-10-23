@@ -18,6 +18,7 @@
   --chip:#FCE4E8; --chip2:#E6F3D6; --scrim:rgba(58,34,48,.42); --shadow:rgba(201,58,99,.28);
   --sun:#FFC9B5; --sun2:#FFE3D6; --hill1:#D7EBBF; --hill2:#B4DC86; --row2:#8CC35E; --hill3:#86C35F; --row3:#5E9E3B; --hill4:#6AAE48;
   --wall:#FFFFFF; --roof:#E98A8A; --door:#C93A63; --orn:#F29AAE; --orn2:#7DB0D8; --grape:#A23A72; --grape2:#D2639A; --leaf:#5E9E3B; --star:transparent;
+  --vleaf:#5A9A34; --vvein:#3D7323; --vstem:#6E7A2C; --gG:#B3D45C; --gG2:#86AD34; --gP:#7E3172; --gP2:#57204F; --ghl:rgba(255,255,255,.4);
   color-scheme: light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -28,6 +29,7 @@
     --chip:#45304B; --chip2:#2F3B2C; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.4);
     --sun:#F6E7C8; --sun2:#4A3557; --hill1:#3C3150; --hill2:#2F4A33; --row2:#3F6640; --hill3:#294230; --row3:#365C39; --hill4:#1F3426;
     --wall:#CFC3D6; --roof:#8C5A6E; --door:#FF7AA2; --orn:#E58FAA; --orn2:#7C9EC2; --grape:#C4669A; --grape2:#E58FB8; --leaf:#4C7D44; --star:#F6E7C8;
+    --vleaf:#4E8A3C; --vvein:#2E5A28; --vstem:#8A9A55; --gG:#A5C65A; --gG2:#7A9A38; --gP:#B25FA4; --gP2:#7E3A74; --ghl:rgba(255,255,255,.3);
     color-scheme: dark;
   }
 }
@@ -37,6 +39,7 @@
     --chip:#45304B; --chip2:#2F3B2C; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.4);
     --sun:#F6E7C8; --sun2:#4A3557; --hill1:#3C3150; --hill2:#2F4A33; --row2:#3F6640; --hill3:#294230; --row3:#365C39; --hill4:#1F3426;
     --wall:#CFC3D6; --roof:#8C5A6E; --door:#FF7AA2; --orn:#E58FAA; --orn2:#7C9EC2; --grape:#C4669A; --grape2:#E58FB8; --leaf:#4C7D44; --star:#F6E7C8;
+    --vleaf:#4E8A3C; --vvein:#2E5A28; --vstem:#8A9A55; --gG:#A5C65A; --gG2:#7A9A38; --gP:#B25FA4; --gP2:#7E3A74; --ghl:rgba(255,255,255,.3);
   color-scheme: dark;
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -186,7 +189,7 @@ label.f{display:block;margin:14px 0 0;font-size:15px;color:var(--muted)}
 </head>
 <body>
 <div class="scenery" aria-hidden="true"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice">
-<defs><radialGradient id="sunG"><stop offset="0" stop-color="var(--sun)"/><stop offset="1" stop-color="var(--sun2)" stop-opacity="0"/></radialGradient></defs>
+<defs><g id="vd-lf"><path d="M0 10 Q-9 11 -16 5 Q-12 3 -8 1 Q-14 -3 -14 -10 Q-8 -9 -4 -5 Q-4 -13 0 -17 Q4 -13 4 -5 Q8 -9 14 -10 Q14 -3 8 1 Q12 3 16 5 Q9 11 0 10Z" fill="var(--vleaf)"/><path d="M0 9 L0 -14 M0 5 L-11 -8 M0 5 L11 -8 M0 8 L-13 5 M0 8 L13 5" stroke="var(--vvein)" stroke-width=".7" fill="none" stroke-linecap="round"/></g><g id="vd-gg"><circle r="4.3" fill="var(--gG)" stroke="var(--gG2)" stroke-width=".6"/><circle cx="-1.4" cy="-1.5" r="1.1" fill="var(--ghl)"/></g><g id="vd-gp"><circle r="4.3" fill="var(--gP)" stroke="var(--gP2)" stroke-width=".6"/><circle cx="-1.4" cy="-1.5" r="1.1" fill="var(--ghl)"/></g><radialGradient id="sunG"><stop offset="0" stop-color="var(--sun)"/><stop offset="1" stop-color="var(--sun2)" stop-opacity="0"/></radialGradient></defs>
 <g fill="var(--star)"><circle cx="40" cy="40" r="1.2"/><circle cx="120" cy="22" r="1"/><circle cx="190" cy="54" r="1.3"/><circle cx="250" cy="18" r="1"/><circle cx="370" cy="44" r="1.2"/><circle cx="80" cy="80" r=".9"/></g>
 <circle cx="300" cy="104" r="64" fill="url(#sunG)"/><circle cx="300" cy="104" r="24" fill="var(--sun)"/>
 <path d="M0 170 C40 150 70 120 105 112 C120 108 128 96 140 92 C152 88 160 104 172 110 C210 128 250 150 290 146 C330 142 365 128 400 132 L400 300 L0 300Z" fill="var(--hill1)"/>
@@ -205,16 +208,14 @@ label.f{display:block;margin:14px 0 0;font-size:15px;color:var(--muted)}
 <g fill="none" stroke="var(--row3)" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="1.5 6">
 <path d="M0 262 C70 238 140 242 210 254 C280 266 340 248 400 252"/><path d="M0 276 C70 254 140 258 210 268 C280 278 340 262 400 266"/><path d="M0 290 C70 270 140 274 210 282 C280 290 340 278 400 280"/></g>
 <path d="M0 286 C80 272 160 276 240 284 C310 290 360 282 400 284 L400 300 L0 300Z" fill="var(--hill4)"/>
-<g transform="translate(54 240) scale(.9)"><path d="M14 4 C22 -2 32 0 36 6 C28 8 20 8 14 4Z" fill="var(--leaf)"/><path d="M14 4 v6" stroke="var(--leaf)" stroke-width="1.6"/>
-<g fill="var(--grape2)"><circle cx="8" cy="13" r="4.2"/><circle cx="16" cy="12" r="4.2"/><circle cx="24" cy="13" r="4"/></g><g fill="var(--grape)"><circle cx="11" cy="20" r="4.2"/><circle cx="19.5" cy="20" r="4.2"/><circle cx="15" cy="27" r="4"/><circle cx="15" cy="34" r="3.2"/></g></g>
-<g transform="translate(316 254) scale(.75)"><path d="M14 4 C22 -2 32 0 36 6 C28 8 20 8 14 4Z" fill="var(--leaf)"/><path d="M14 4 v6" stroke="var(--leaf)" stroke-width="1.6"/>
-<g fill="var(--rose)"><circle cx="8" cy="13" r="4.2"/><circle cx="16" cy="12" r="4.2"/><circle cx="24" cy="13" r="4"/></g><g fill="var(--ruby)"><circle cx="11" cy="20" r="4.2"/><circle cx="19.5" cy="20" r="4.2"/><circle cx="15" cy="27" r="4"/></g></g>
+<g transform="translate(40 226) scale(.95)"><path d="M-60 14 C-30 2 -12 14 0 12 C14 6 28 14 44 9 C58 5 66 10 76 6" stroke="var(--vstem)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M50 8 C47 14 53 17 49 21 C47 23 44 22 45 20" stroke="var(--vstem)" stroke-width=".8" fill="none" stroke-linecap="round"/><g transform="translate(50 20)"><path d="M-2 -10 Q0 -6 0 -4" stroke="var(--vstem)" stroke-width="1.2" fill="none"/><use href="#vd-gp" x="-10" y="0"/><use href="#vd-gp" x="-2.5" y="-1"/><use href="#vd-gp" x="5" y="0"/><use href="#vd-gp" x="10.5" y="2.5"/><use href="#vd-gp" x="-6.5" y="7"/><use href="#vd-gp" x="1" y="7"/><use href="#vd-gp" x="8" y="8.5"/><use href="#vd-gp" x="-3" y="14"/><use href="#vd-gp" x="4.5" y="14.5"/><use href="#vd-gp" x="1" y="21"/></g><g transform="translate(24 17)"><path d="M0 -7 v4" stroke="var(--vstem)" stroke-width="1.2"/><use href="#vd-gg" x="-9.5" y="0"/><use href="#vd-gg" x="-2" y="-1"/><use href="#vd-gg" x="5.5" y="0"/><use href="#vd-gg" x="11.5" y="2.5"/><use href="#vd-gg" x="-6" y="7"/><use href="#vd-gg" x="1.5" y="7.5"/><use href="#vd-gg" x="8.5" y="8.5"/><use href="#vd-gg" x="-2.5" y="14.5"/><use href="#vd-gg" x="5" y="15"/><use href="#vd-gg" x="1" y="21.5"/></g><use href="#vd-lf" transform="translate(10 1) rotate(-30)"/><use href="#vd-lf" transform="translate(38 -1) rotate(8) scale(.95)"/><use href="#vd-lf" transform="translate(66 -1) rotate(35) scale(.8)"/></g>
+<g transform="translate(330 252) scale(.7)"><path d="M0 -10 v6" stroke="var(--vstem)" stroke-width="1.4"/><use href="#vd-gp" x="-10" y="0"/><use href="#vd-gp" x="-2.5" y="-1"/><use href="#vd-gp" x="5" y="0"/><use href="#vd-gp" x="10.5" y="2.5"/><use href="#vd-gp" x="-6.5" y="7"/><use href="#vd-gp" x="1" y="7"/><use href="#vd-gp" x="8" y="8.5"/><use href="#vd-gp" x="-3" y="14"/><use href="#vd-gp" x="4.5" y="14.5"/><use href="#vd-gp" x="1" y="21"/><use href="#vd-lf" transform="translate(9 -9) rotate(30) scale(.7)"/></g>
 </svg></div>
 <div class="wrap">
   <header class="top">
     <div class="trip">
       <button class="trip-btn" data-act="trip" aria-label="Upravit název a termín víkendu">
-        <h1><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M15 6c1-3 4-5 8-5-1 3-4 5-8 5z" fill="var(--leaf)"/><path d="M15 6v4" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round"/><g fill="var(--grape2)"><circle cx="9" cy="13" r="4"/><circle cx="17" cy="12" r="4"/><circle cx="24" cy="14" r="3.6"/></g><g fill="var(--ruby)"><circle cx="12" cy="20" r="4"/><circle cx="20" cy="19.5" r="4"/></g><g fill="var(--grape)"><circle cx="16" cy="27" r="4"/><circle cx="9" cy="25" r="3"/><circle cx="23" cy="25" r="3"/></g></svg><span id="tripName">Víkend na Moravě</span></h1>
+        <h1><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M15 9 Q15 5 12 3" stroke="var(--vstem)" stroke-width="1.6" fill="none" stroke-linecap="round"/><use href="#vd-lf" transform="translate(20 6) rotate(35) scale(.4)"/><g transform="translate(8 14) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(15 13) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(22 14.5) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(11.5 20.5) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(18.5 21) scale(.88)"><use href="#vd-gp"/></g><g transform="translate(15 27.5) scale(.88)"><use href="#vd-gp"/></g></svg><span id="tripName">Víkend na Moravě</span></h1>
         <div class="dates" id="tripDates"></div>
       </button>
       <div class="status" id="status"><i></i><span>Načítám…</span></div>
