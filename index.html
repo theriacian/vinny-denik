@@ -153,6 +153,8 @@ nav.tabs button[aria-selected="true"]{background:var(--ruby);color:var(--ruby-in
 .suggest button{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:14px;color:var(--muted)}
 .thinking{color:var(--muted);font-style:italic}
 .note{font-size:14px;color:var(--muted);margin-top:8px}
+.steps{padding-left:22px;margin:10px 0 4px}
+.steps li{margin:6px 0}
 
 /* sheet */
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:20;display:none}
@@ -259,7 +261,7 @@ let state=loadLocal()||{trip:{name:'Víkend na Moravě',dates:''},cellars:[],upd
 let tab=TABS.includes(location.hash.slice(1))?location.hash.slice(1):'sklipky';
 let openCellar=null, filterColor='', query='';
 let dbRef=null, writing=false, pendingWrite=false, saveTimer=null;
-const CAP={sample:null,imgOK:false,assets:null,downloads:null};
+const CAP={sample:null,imgOK:false,assets:null,downloads:null,via:null};
 const AI={chat:[],chatBusy:false,chatCtl:null,verdictLive:null,verdictCtl:null};
 
 const PH_KEY='vinny-denik-photos-v1';
@@ -323,15 +325,114 @@ async function initDb(){
   }catch(e){localStatus();}
 }
 async function initCaps(){
-  const c=window.claude; if(!c||!c.use)return;
-  c.use('sample').then(async s=>{CAP.sample=s;if(s){try{const l=await s.limits();CAP.imgOK=!!(l&&l.images);}catch(_){}}render();});
+  const c=window.claude; if(!c||!c.use){gmEnable();if(CAP.sample)render();return;}
+  c.use('sample').then(async s=>{CAP.sample=s;CAP.via=s?'claude':null;if(s){try{const l=await s.limits();CAP.imgOK=!!(l&&l.images);}catch(_){}}render();});
   c.use('assets').then(a=>{CAP.assets=a;});
   c.use('downloads').then(d=>{CAP.downloads=d;});
 }
+/* ---------- Gemini (vlastní klíč z Google AI Studia, mimo Claude) ---------- */
+const GM_KEY='vinny-denik-gemini-v1';
+const GM_API='https://generativelanguage.googleapis.com/v1beta/';
+let gm=(()=>{if(!STORE)return null;try{const g=JSON.parse(STORE.getItem(GM_KEY)||'null');return g&&g.key&&Array.isArray(g.models)&&g.models.length?g:null;}catch(e){return null;}})();
+const canGemini=()=>!(window.claude&&window.claude.use);
+function gmEnable(){
+  if(gm&&canGemini()){CAP.sample=gmSample;CAP.imgOK=true;CAP.via='gemini';}
+  else if(CAP.via==='gemini'||!CAP.via){CAP.sample=null;CAP.imgOK=false;CAP.via=null;}
+}
+function gmErr(code,text){const e=new Error(code);e.code=code;if(text)e.text=text;return e;}
+function gmCode(status,body){
+  const er=(body&&body.error)||{};const m=(er.message||'')+' '+(er.status||'');
+  if(status===429)return 'rate_limited';
+  if(status===404)return 'model_missing';
+  if(status===401||status===403||/API_KEY|API key/i.test(m))return 'bad_key';
+  if(status===400&&/image|inline|mime/i.test(m))return 'image_rejected';
+  return 'network';
+}
+async function gmFetch(method,body,signal){
+  let last='network';
+  for(const model of gm.models){
+    const res=await fetch(GM_API+'models/'+model+':'+method,{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':gm.key},body:JSON.stringify(body),signal});
+    if(res.ok)return res;
+    let j=null;try{j=await res.json();}catch(_){}
+    const code=gmCode(res.status,j);
+    if(code==='model_missing'||code==='rate_limited'){last=code==='rate_limited'?code:last;continue;}
+    throw gmErr(code);
+  }
+  throw gmErr(last);
+}
+const gmText=c=>((c&&c.content&&c.content.parts)||[]).filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
+const gmBlocked=r=>['SAFETY','PROHIBITED_CONTENT','BLOCKLIST','SPII','RECITATION'].includes(r);
+function gmContents(input){
+  if(typeof input==='string')return [{role:'user',parts:[{text:input}]}];
+  return input.map(t=>({role:t.role==='assistant'?'model':'user',parts:[{text:String(t.content||'').trim()||'…'}]}));
+}
+function gmFail(e,text){
+  if(e&&e.name==='AbortError')return gmErr('cancelled',text);
+  if(e&&e.code){if(text&&!e.text)e.text=text;return e;}
+  return gmErr('network',text);
+}
+async function gmSample(input,opts){
+  opts=opts||{};let text='',blocked=false;
+  try{
+    const res=await gmFetch('streamGenerateContent?alt=sse',{contents:gmContents(input)},opts.signal);
+    const rd=res.body.getReader(),dec=new TextDecoder();let buf='';
+    const take=ev=>{
+      const data=ev.split(/\r?\n/).filter(l=>l.startsWith('data:')).map(l=>l.slice(5)).join('\n').trim();
+      if(!data)return;let d;try{d=JSON.parse(data);}catch(_){return;}
+      if(d.promptFeedback&&d.promptFeedback.blockReason)blocked=true;
+      const c=d.candidates&&d.candidates[0];if(c&&gmBlocked(c.finishReason))blocked=true;
+      const add=gmText(c);if(add){text+=add;if(opts.onText)opts.onText({text});}
+    };
+    for(;;){
+      const {done,value}=await rd.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      let m;while((m=buf.match(/\r?\n\r?\n/))){take(buf.slice(0,m.index));buf=buf.slice(m.index+m[0].length);}
+    }
+    take(buf);
+    if(!text)throw gmErr(blocked?'refused':'network');
+    return {text};
+  }catch(e){throw gmFail(e,text);}
+}
+const blobB64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b);});
+gmSample.json=async function(prompt,opts){
+  opts=opts||{};
+  try{
+    const parts=[{text:prompt}];
+    for(const b of [].concat(opts.images||[]))parts.push({inlineData:{mimeType:b.type||'image/jpeg',data:await blobB64(b)}});
+    const res=await gmFetch('generateContent',{contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json'}},opts.signal);
+    const d=await res.json();const c=d.candidates&&d.candidates[0];
+    if(c&&gmBlocked(c.finishReason))throw gmErr('refused');
+    try{return JSON.parse(gmText(c).trim().replace(/^```(?:json)?\s*|\s*```$/g,''));}catch(_){throw gmErr('invalid_json');}
+  }catch(e){throw gmFail(e);}
+};
+function gmPick(list){
+  const names=list.filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>String(m.name||'').replace(/^models\//,''));
+  const ver=n=>{const m=n.match(/^gemini-(\d+(?:\.\d+)?)-flash(-lite)?$/);return m?{n,v:+m[1],lite:!!m[2]}:null;};
+  const stable=names.map(ver).filter(Boolean).sort((a,b)=>b.v-a.v);
+  const out=[];const add=n=>{if(n&&names.includes(n)&&!out.includes(n))out.push(n);};
+  add('gemini-flash-latest');stable.filter(o=>!o.lite).forEach(o=>add(o.n));
+  add('gemini-flash-lite-latest');stable.filter(o=>o.lite).forEach(o=>add(o.n));
+  if(!out.length)names.filter(n=>/flash/.test(n)&&!/image|tts|audio|live|embed|thinking/.test(n)).forEach(add);
+  return out.slice(0,4);
+}
+async function gmConnect(key){
+  let res;
+  try{res=await fetch(GM_API+'models?pageSize=1000',{headers:{'x-goog-api-key':key}});}catch(_){throw gmErr('network');}
+  let j=null;try{j=await res.json();}catch(_){}
+  if(!res.ok)throw gmErr(gmCode(res.status,j)==='bad_key'||res.status===400?'bad_key':'network');
+  const models=gmPick((j&&j.models)||[]);
+  if(!models.length)throw gmErr('no_model');
+  gm={key,models};
+  if(STORE)try{STORE.setItem(GM_KEY,JSON.stringify(gm));}catch(_){}
+  gmEnable();
+}
+function gmRemove(){gm=null;if(STORE)try{STORE.removeItem(GM_KEY);}catch(_){}gmEnable();}
 function aiErr(e){
   const code=e&&e.code;
   if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){CAP.sample=null;render();return 'Sommeliér není v tomto zobrazení dostupný.';}
-  if(code==='rate_limited')return 'Sommeliér má teď moc práce, zkuste to za chvíli.';
+  if(code==='rate_limited')return CAP.via==='gemini'?'Bezplatný limit Gemini je teď vyčerpaný, zkuste to za chvíli nebo později během dne.':'Sommeliér má teď moc práce, zkuste to za chvíli.';
+  if(code==='bad_key')return 'Klíč Gemini nefunguje. Zkontrolujte ho v nastavení sommeliéra.';
+  if(code==='refused')return 'Na tohle sommeliér neodpoví, zkuste to formulovat jinak.';
   if(code==='image_rejected')return 'Fotku se nepodařilo přečíst, zkuste jinou.';
   if(code==='images_unavailable'){CAP.imgOK=false;return 'Čtení fotek tu není dostupné.';}
   if(code==='invalid_json')return 'Etiketu se nepodařilo spolehlivě přečíst.';
@@ -454,7 +555,7 @@ function renderShop(){
 }
 function renderSommelier(){
   const ws=allWines();
-  if(!ws.length)return `<div class="empty"><h2>Sommeliér čeká na data</h2><p>Zapište pár vín a tady uvidíte, jak víkend vypadá v číslech, verdikt sommeliéra a můžete se ho na cokoli zeptat.</p></div>`;
+  if(!ws.length)return `<div class="empty"><h2>Sommeliér čeká na data</h2><p>Zapište pár vín a tady uvidíte, jak víkend vypadá v číslech, verdikt sommeliéra a můžete se ho na cokoli zeptat.</p>${!CAP.sample&&canGemini()?`<div class="row-actions"><button class="btn ai" data-act="gmSetup">✨ Zapnout sommeliéra</button></div>`:''}</div>`;
   const rated=ws.filter(x=>x.w.rating);
   const byColor={};ws.forEach(x=>{const k=x.w.color||'bile';byColor[k]=(byColor[k]||0)+1;});
   const domColor=Object.entries(byColor).sort((a,b)=>b[1]-a[1])[0];
@@ -476,7 +577,7 @@ function renderSommelier(){
   h+=`<div class="legend">${COLORS.filter(([k])=>byColor[k]).map(([k,l])=>`<span><i class="dot c-${k}"></i>${l} ${byColor[k]}</span>`).join('')}${best?`<span>Vítěz: ${esc(best.w.name)}</span>`:''}</div>`;
 
   h+=`<div class="list-section"><h3>Verdikt víkendu</h3>`;
-  if(!CAP.sample){h+=`<p class="note">Sommeliér poháněný Claudem tu není dostupný. Statistiky výše fungují i bez něj.</p></div>`;return h;}
+  if(!CAP.sample){h+=canGemini()?`<p class="note">Sommeliér potřebuje umělou inteligenci. Stačí bezplatný klíč z Google AI Studia, nastavení zabere pár minut. Statistiky výše fungují i bez něj.</p>${!CAP.sample&&canGemini()?`<div class="row-actions"><button class="btn ai" data-act="gmSetup">✨ Zapnout sommeliéra</button></div>`:''}</div>`:`<p class="note">Sommeliér tu není dostupný. Statistiky výše fungují i bez něj.</p></div>`;return h;}
   const vt=AI.verdictLive!==null?AI.verdictLive:(state.verdict&&state.verdict.text);
   if(vt!==undefined&&vt!==null&&vt!=='')h+=`<div class="prose" id="verdict">${md(vt)}</div>`;
   else if(AI.verdictLive==='')h+=`<div class="prose" id="verdict"><p class="thinking">Sommeliér ochutnává váš deník…</p></div>`;
@@ -486,6 +587,7 @@ function renderSommelier(){
   h+=`<div class="list-section"><h3>Zeptejte se sommeliéra</h3><div class="chat" id="chatLog">${renderChatLog()}</div>`;
   if(!AI.chat.length)h+=`<div class="suggest">${['Co si dát k večeři?','Které víno je nejlepší koupě?','Co ochutnat zítra?','Proč mi chutná Pálava?'].map(s=>`<button data-suggest="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
   h+=`<form class="ask" id="askForm"><input id="askInput" placeholder="Zeptejte se na cokoli o vínech z deníku" autocomplete="off" aria-label="Otázka pro sommeliéra">${AI.chatBusy?`<button type="button" class="btn" data-act="stopChat">Stop</button>`:`<button class="btn primary" type="submit">Zeptat</button>`}</form></div>`;
+  if(CAP.via==='gemini')h+=`<p class="note">Sommeliér běží na Gemini přes váš klíč. <button class="btn" data-act="gmSetup" style="margin-left:4px">Nastavení</button></p>`;
   return h;
 }
 function renderChatLog(){
@@ -609,6 +711,28 @@ function tripSheet(){
   <div class="row-actions"><button class="btn" data-act="backupDownload">Stáhnout zálohu</button><button class="btn" data-act="backupCopy">Zkopírovat jako text</button><button class="btn" data-act="importFile">Obnovit ze souboru</button><button class="btn" data-act="importPaste">Vložit text zálohy</button></div>
   <div class="row-actions"><button class="btn danger" data-act="newTrip">Začít nový víkend</button></div>
   <div class="sheet-actions"><span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="saveTrip">Uložit</button></div>`);
+}
+function gmSheet(){
+  openSheet(`<h2 id="sheetTitle">Sommeliér s Gemini</h2>
+  <p>Sommeliér poběží na umělé inteligenci Gemini od Googlu přes váš vlastní klíč. Klíč je zdarma, stačí účet Google.</p>
+  <ol class="steps"><li>Otevřete <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> a přihlaste se účtem Google.</li>
+  <li>Klikněte na tlačítko pro vytvoření klíče (<i>Create API key</i>) a klíč zkopírujte.</li>
+  <li>Vložte ho sem a dejte Uložit.</li></ol>
+  <label class="f">Klíč Gemini<input id="gmKey" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${gm?'uložený klíč končí na …'+esc(gm.key.slice(-4)):'vložte klíč'}"></label>
+  <div class="ai-status" id="gmStatus" aria-live="polite"></div>
+  <p class="note">Klíč zůstává jen v tomto zařízení a není součástí zálohy. Když sommeliéra použijete, texty z deníku a fotky etiket se posílají ke zpracování do Googlu. Bezplatný klíč má denní limit dotazů; po jeho vyčerpání je potřeba chvíli počkat.</p>
+  <div class="sheet-actions">${gm?'<button class="btn danger" data-act="gmRemove">Odebrat klíč</button>':''}<span class="spacer"></span><button class="btn" data-act="close">Zrušit</button><button class="btn primary" data-act="gmSave">Uložit</button></div>`);
+}
+async function gmSave(btn){
+  const inp=$('gmKey'),st=$('gmStatus');const k=inp.value.replace(/\s+/g,'');
+  if(!k){if(gm)return closeSheet();inp.focus();st.style.color='var(--red)';st.textContent='Vložte klíč z Google AI Studia.';return;}
+  btn.disabled=true;st.style.color='';st.textContent='Ověřuji klíč…';
+  try{await gmConnect(k);closeSheet();render();toast('Sommeliér je připravený');}
+  catch(e){
+    st.style.color='var(--red)';
+    st.textContent=e.code==='bad_key'?'Tenhle klíč Google nepřijal. Zkontrolujte, že je zkopírovaný celý.':e.code==='no_model'?'Klíč funguje, ale Google k němu nenabízí vhodný model.':'Nepodařilo se spojit s Googlem. Zkontrolujte připojení a zkuste to znovu.';
+    btn.disabled=false;
+  }
 }
 function cellarSheet(c){
   c=c||{};
@@ -746,6 +870,9 @@ document.addEventListener('click',async e=>{
     case 'photo':return $('photoInput').click();
     case 'polish':return polishNote(t);
     case 'verdict':return runVerdict();
+    case 'gmSetup':return gmSheet();
+    case 'gmSave':return gmSave(t);
+    case 'gmRemove':gmRemove();closeSheet();render();return toast('Klíč odebrán');
     case 'stopVerdict':if(AI.verdictCtl)AI.verdictCtl.abort();return;
     case 'stopChat':if(AI.chatCtl)AI.chatCtl.abort();return;
     case 'saveTrip':state.trip.name=$('fTrip').value.trim()||'Víkend na Moravě';state.trip.dates=$('fDates').value.trim();closeSheet();return commit();

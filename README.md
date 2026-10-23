@@ -17,4 +17,7 @@ Produkční větev je ve Vercelu nastavená v Settings → Environments → Prod
 - Při změně ikon nebo manifestu zvyšte číslo v `CACHE` v `sw.js` (např. `vinny-denik-v3`).
 
 ## AI sommeliér
-Funguje jen tehdy, když aplikace běží jako artifact v Claude. Na vlastní adrese se tyto funkce skryjí.
+- Jako artifact v Claude běží sommeliér na Claudovi uživatele.
+- Na vlastní adrese (Vercel) běží na Gemini přes klíč, který si uživatel vytvoří zdarma v Google AI Studiu (aistudio.google.com/apikey) a vloží v záložce Sommeliér. Klíč se ukládá jen v jeho prohlížeči (`localStorage`, klíč `vinny-denik-gemini-v1`) a není součástí zálohy.
+- Aplikace volá Gemini API přímo z prohlížeče. Model vybere podle seznamu dostupných modelů (přednost má řada Flash) a při vyčerpání limitu zkusí další.
+- Bez klíče se funkce sommeliéra skryjí, statistiky fungují dál.
